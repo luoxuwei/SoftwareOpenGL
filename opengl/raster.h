@@ -1,5 +1,5 @@
 //Copyright luoxuwei All Rights Reserved.
-#include "../common/base.h"
+#include "../math/math.h"
 
 //传入离散的图元点，返回光栅化后的像素数组
 

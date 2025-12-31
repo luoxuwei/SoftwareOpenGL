@@ -2,6 +2,14 @@
 #pragma once
 #include "vector.h"
 #include "matrix.h"
+#include "../common/base.h"
+
+struct Point {
+	int32_t x;
+	int32_t y;
+	RGBA color;
+	math::vec2f uv;
+};
 
 namespace math {
 
@@ -324,6 +332,157 @@ namespace math {
 		T oneOverDeterminant = static_cast<T>(1) / determinant;
 
 		return result * oneOverDeterminant;
+	}
+
+	//空间变换功能
+	//scale translate rotate
+	//变换操作作用于某一组坐标基,即变换是在当前模型坐标系内
+	//第一个参数是哪个矩阵操作（即当前模型坐标系）
+	//随后即各自相关参数
+
+	template<typename T, typename V>
+	Matrix44<T> scale(const Matrix44<T>& src, V x, V y, V z) {
+		Matrix44<T> result;
+
+		auto col0 = src.getColum(0);
+		auto col1 = src.getColum(1);
+		auto col2 = src.getColum(2);
+		auto col3 = src.getColum(3);
+
+		col0 *= x;
+		col1 *= y;
+		col2 *= z;
+
+		result.setColum(col0, 0);
+		result.setColum(col1, 1);
+		result.setColum(col2, 2);
+		result.setColum(col3, 3);
+
+		return result;
+	}
+
+	template<typename T, typename V>
+	Matrix44<T> translate(const Matrix44<T>& src, V x, V y, V z) {
+		Matrix44<T> result(src);
+		auto col0 = src.getColum(0);
+		auto col1 = src.getColum(1);
+		auto col2 = src.getColum(2);
+		auto col3 = src.getColum(3);
+
+		Vector4<T> dstCol3 = col0 * x + col1 * y + col2 * z + col3;
+		result.setColum(dstCol3, 3);
+
+		return result;
+	}
+
+	template<typename T, typename V>
+	Matrix44<T> translate(const Matrix44<T>& src, const Vector3<V>& v) {
+		return translate(src, v.x, v.y, v.z);
+	}
+
+	/*
+	* 旋转函数，会把纯旋转矩阵放在右边，默认先做完所有旋转，再加上原来的平移
+	* 在当前模型坐标系内旋转，所以先在原点旋转完毕，在乘以src
+	* angle为弧度
+	*/
+	template<typename T>
+	Matrix44<T> rotate(const Matrix44<T>& src, float angle, const Vector3<T>& v) {
+		T const c = std::cos(angle);
+		T const s = std::sin(angle);
+
+		Vector3<T> axis = normalize(v);
+		Vector3<T> temp((T(1) - c) * axis);
+
+		Matrix44<T> Rotate;
+		Rotate.set(0, 0, c + temp[0] * axis[0]);
+		Rotate.set(1, 0, temp[0] * axis[1] + s * axis[2]);
+		Rotate.set(2, 0, temp[0] * axis[2] - s * axis[1]);
+
+		Rotate.set(0, 1, temp[1] * axis[0] - s * axis[2]);
+		Rotate.set(1, 1, c + temp[1] * axis[1]);
+		Rotate.set(2, 1, temp[1] * axis[2] + s * axis[0]);
+
+		Rotate.set(0, 2, temp[2] * axis[0] + s * axis[1]);
+		Rotate.set(1, 2, temp[2] * axis[1] - s * axis[0]);
+		Rotate.set(2, 2, c + temp[2] * axis[2]);
+
+		//接下来计算 src * rotate
+		auto rCol0 = Rotate.getColum(0);
+		auto rCol1 = Rotate.getColum(1);
+		auto rCol2 = Rotate.getColum(2);
+		auto rCol3 = Rotate.getColum(3);
+
+		auto srcCol0 = src.getColum(0);
+		auto srcCol1 = src.getColum(1);
+		auto srcCol2 = src.getColum(2);
+		auto srcCol3 = src.getColum(3);
+
+		auto col0 = srcCol0 * rCol0[0] + srcCol1 * rCol0[1] + srcCol2 * rCol0[2];
+		auto col1 = srcCol0 * rCol1[0] + srcCol1 * rCol1[1] + srcCol2 * rCol1[2];
+		auto col2 = srcCol0 * rCol2[0] + srcCol1 * rCol2[1] + srcCol2 * rCol2[2];
+		auto col3 = srcCol3;
+
+		Matrix44<T> result(src);
+
+		result.setColum(col0, 0);
+		result.setColum(col1, 1);
+		result.setColum(col2, 2);
+		result.setColum(col3, 3);
+
+		return result;
+	}
+
+
+	//正交投影函数
+	template<typename T>
+	Matrix44<T> orthographic(T left, T right, T bottom, T top, T near, T far) {
+		Matrix44<T> result(static_cast<T>(1));
+
+		result.set(0, 0, static_cast<T>(2) / (right - left));
+		result.set(0, 3, -(right + left) / (right - left));
+		result.set(1, 1, static_cast<T>(2) / (top - bottom));
+		result.set(1, 3, -(top + bottom) / (top - bottom));
+		result.set(2, 2, -static_cast<T>(2) / (far - near));
+		result.set(1, 3, -(far + near) / (far - near));
+
+		return result;
+	}
+
+	//透视投影函数
+	//这里的fov是y方向的fov
+	template<typename T>
+	Matrix44<T> perspective(T fovy, T aspect, T n, T f) {
+		T const tanHalfFovy = std::tan(DEG2RAD(fovy / static_cast<T>(2)));
+
+		Matrix44<T> result(static_cast<T>(0));
+		result.set(0, 0, static_cast<T>(1) / (aspect * tanHalfFovy));
+		result.set(1, 1, static_cast<T>(1) / (tanHalfFovy));
+		result.set(2, 2, -(f + n) / (f - n));
+		result.set(2, 3, -static_cast<T>(2) * f * n / (f - n));
+		result.set(3, 2, -static_cast<T>(1));
+
+		return result;
+	}
+
+
+	//屏幕空间变换函数
+	template<typename T>
+	Matrix44<T> screenMatrix(const uint32_t& width, const uint32_t& height) {
+		Matrix44<T> result(static_cast<T>(1));
+
+		//x
+		result.set(0, 0, static_cast<T>(width) / static_cast<T>(2));
+		result.set(0, 3, static_cast<T>(width) / static_cast<T>(2));
+
+		//y
+		result.set(1, 1, static_cast<T>(height) / static_cast<T>(2));
+		result.set(1, 3, static_cast<T>(height) / static_cast<T>(2));
+
+		//z
+		result.set(2, 2, 0.5f);
+		result.set(2, 3, 0.5f);
+
+		return result;
 	}
 
 }

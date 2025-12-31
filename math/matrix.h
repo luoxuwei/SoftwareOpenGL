@@ -207,6 +207,6 @@ namespace math {
 		T m[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
 	};
 
-	using Mat3f = Matrix33<float>;
-	using Mat4f = Matrix44<float>;
+	using mat3f = Matrix33<float>;
+	using mat4f = Matrix44<float>;
 }

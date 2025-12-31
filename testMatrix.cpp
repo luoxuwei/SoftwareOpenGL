@@ -1,7 +1,7 @@
 #include "math/math.h"
 
 int main() {
-	math::Mat3f m33;
+	math::mat3f m33;
 	auto m = m33 * 4.0f;
 	m.printMatrix();
 
@@ -16,6 +16,10 @@ int main() {
 
 	//auto m43 = m41 * m42;
 	//m43.printMatrix();
+
+	math::mat4f ms;
+	auto nms = math::scale(ms, 0.5, 0.5, 0.5);
+	nms.printMatrix();
 
 	return 0;
 }

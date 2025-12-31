@@ -4,6 +4,7 @@
 #include <assert.h>
 
 namespace math {
+
 	template<typename T>
 	class Vector3;
 

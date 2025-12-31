@@ -4,6 +4,7 @@
 #include "frameBuffer.h"
 #include "../app/app.h"
 #include "../app/image.h"
+#include "../math/math.h"
 
 #define gl Render::getInstance()
 
