@@ -69,8 +69,16 @@ void Render::drawTriangle(const Point& p1, const Point& p2, const Point& p3) {
 	std::vector<Point> pixels;
 	rasterizeTriangle(pixels, p1, p2, p3);
 
-	for (auto p : pixels) {
-		drawPoint(p.x, p.y, p.color);
+	RGBA resultColor;
+	for (auto& p : pixels) {
+		if (mImage) {
+			resultColor = sampleNearest(p.uv);
+		}
+		else {
+			resultColor = p.color;
+		}
+
+		drawPoint(p.x, p.y, resultColor);
 	}
 }
 
@@ -98,6 +106,23 @@ void Render::drawImageWidthAlpha(const Image* image, const uint32_t& alpha) {
 //设置状态
 void Render::setBlending(bool enable) {
 	mEnableBlending = enable;
+}
+
+void Render::setTexture(Image* image) {
+	mImage = image;
+}
+
+RGBA Render::sampleNearest(const math::vec2f& uv) {
+	auto myUV = uv;
+
+	//四舍五入到最近整数
+	// u = 0 对应 x = 0，u = 1 对应 x = width - 1
+	// v = 0 对应 y = 0，v = 1 对应 y = height - 1
+	int x = std::round(myUV.x * (mImage->mWidth - 1));
+	int y = std::round(myUV.y * (mImage->mHeight - 1));
+
+	int position = y * mImage->mWidth + x;
+	return mImage->mData[position];
 }
 
 
@@ -135,3 +160,6 @@ void glSetBlending(bool enable) {
 	gl->setBlending(enable);
 }
 
+void glSetTexture(Image* image) {
+	gl->setTexture(image);
+}

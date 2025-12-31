@@ -93,13 +93,9 @@ void interpolantLine(const Point& v0, const Point& v1, Point& target) {
 		weight = (float)(target.y - v0.y) / (float)(v1.y - v0.y);
 	}
 
-	RGBA result;
-	result.mR = static_cast<byte>(static_cast<float>(v1.color.mR) * weight + (1.0f - weight) * static_cast<float>(v0.color.mR));
-	result.mG = static_cast<byte>(static_cast<float>(v1.color.mG) * weight + (1.0f - weight) * static_cast<float>(v0.color.mG));
-	result.mB = static_cast<byte>(static_cast<float>(v1.color.mB) * weight + (1.0f - weight) * static_cast<float>(v0.color.mB));
-	result.mA = static_cast<byte>(static_cast<float>(v1.color.mA) * weight + (1.0f - weight) * static_cast<float>(v0.color.mA));
-
-	target.color = result;
+	target.color = lerpRGBA(v0.color, v1.color, weight);
+	//对于uv坐标的插值
+	target.uv = lerpUV(v0.uv, v1.uv, weight);
 }
 
 void rasterizeTriangle(
@@ -156,15 +152,45 @@ void interpolantTriangle(const Point& v0, const Point& v1, const Point& v2, Poin
 	float weight1 = v1Area / sumArea;
 	float weight2 = v2Area / sumArea;
 
+	//对于颜色的插值
+	p.color = lerpRGBA(v0.color, v1.color, v2.color, weight0, weight1, weight2);
+
+	//对于uv坐标的插值
+	p.uv = lerpUV(v0.uv, v1.uv, v2.uv, weight0, weight1, weight2);
+}
+
+RGBA lerpRGBA(const RGBA& c0, const RGBA& c1, float weight) {
 	RGBA result;
-	auto c0 = v0.color;
-	auto c1 = v1.color;
-	auto c2 = v2.color;
+
+	result.mR = static_cast<float>(c1.mR) * weight + static_cast<float>(c0.mR) * (1.0f - weight);
+	result.mG = static_cast<float>(c1.mG) * weight + static_cast<float>(c0.mG) * (1.0f - weight);
+	result.mB = static_cast<float>(c1.mB) * weight + static_cast<float>(c0.mB) * (1.0f - weight);
+	result.mA = static_cast<float>(c1.mA) * weight + static_cast<float>(c0.mA) * (1.0f - weight);
+
+	return result;
+}
+
+RGBA lerpRGBA(const RGBA& c0, const RGBA& c1, const RGBA& c2, float weight0, float weight1, float weight2) {
+	RGBA result;
 
 	result.mR = static_cast<float>(c0.mR) * weight0 + static_cast<float>(c1.mR) * weight1 + static_cast<float>(c2.mR) * weight2;
 	result.mG = static_cast<float>(c0.mG) * weight0 + static_cast<float>(c1.mG) * weight1 + static_cast<float>(c2.mG) * weight2;
 	result.mB = static_cast<float>(c0.mB) * weight0 + static_cast<float>(c1.mB) * weight1 + static_cast<float>(c2.mB) * weight2;
 	result.mA = static_cast<float>(c0.mA) * weight0 + static_cast<float>(c1.mA) * weight1 + static_cast<float>(c2.mA) * weight2;
 
-	p.color = result;
+	return result;
+}
+
+math::vec2f lerpUV(const math::vec2f& uv0, const math::vec2f& uv1, const math::vec2f& uv2, float weight0, float weight1, float weight2) {
+	math::vec2f uv;
+
+	uv = uv0 * weight0 + uv1 * weight1 + uv2 * weight2;
+	return uv;
+}
+
+math::vec2f lerpUV(const math::vec2f& uv0, const math::vec2f& uv1, float weight) {
+	math::vec2f uv;
+
+	uv = uv1 * weight + uv0 * (1.0f - weight);
+	return uv;
 }
