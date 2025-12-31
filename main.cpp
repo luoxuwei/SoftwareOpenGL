@@ -9,16 +9,18 @@
 void render() {
 	glClear();
 
-	//for (uint32_t i = 0; i < app->getWidth(); ++i) {
-	//	sgl->drawPoint(i, 500, RGBA(255, 255, 255));
-	//}
+	int r = 150;
+	Point c{ 400, 300, RGBA(255, 0, 0, 255) };
 
-	for (uint32_t i = 0; i < app->getWidth(); ++i) {
-		for (uint32_t j = 0; j < app->getHeight(); ++j) {
-			uint32_t v = std::rand() % 255;
-			RGBA color(v, v, v, v);
-			glDrawPoint(i, j, color);
-		}
+	for (float i = 0; i < 360; i += 10)
+	{
+		float radian = DEG2RAD(i);
+		int x = r * sin(radian) + c.x;
+		int y = r * cos(radian) + c.y;
+
+		Point  pt{ x, y, RGBA(rand() % 255, rand() % 255, rand() % 255, 255) };
+
+		glDrawLine(c, pt);
 	}
 }
 
@@ -32,7 +34,7 @@ int APIENTRY wWinMain(
 	_In_ LPWSTR    lpCmdLine,		//应用程序运行参数
 	_In_ int       nCmdShow)		//窗口如何显示（最大化、最小化、隐藏），不需理会
 {
-	if (!app->initApplication(hInstance, 800, 600)) {
+	if (!app->init(hInstance, 800, 600)) {
 		return -1;
 	}
 

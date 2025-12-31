@@ -1,6 +1,7 @@
 //Copyright luoxuwei All Rights Reserved.
 #include "render.h"
 #include "gl.h"
+#include "raster.h"
 
 Render* Render::mInstance = nullptr;
 Render* Render::getInstance() {
@@ -34,6 +35,15 @@ void Render::drawPoint(const uint32_t& x, const uint32_t& y, const RGBA& color) 
 	mFrameBuffer->mColorBuffer[pixelPos] = color;
 }
 
+void Render::drawLine(const Point& p1, const Point& p2) {
+	std::vector<Point> pixels;
+	rasterizeLine(pixels, p1, p2);
+
+	for (auto p : pixels) {
+		drawPoint(p.x, p.y, p.color);
+	}
+}
+
 
 //
 void glViewport(const uint32_t& width, const uint32_t& height, void* buffer) {
@@ -46,4 +56,8 @@ void glClear() {
 
 void glDrawPoint(const uint32_t& x, const uint32_t& y, const RGBA& color) {
 	gl->drawPoint(x, y, color);
+}
+
+void glDrawLine(const Point& p1, const Point& p2) {
+	gl->drawLine(p1, p2);
 }

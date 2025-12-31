@@ -18,7 +18,7 @@ LRESULT CALLBACK Wndproc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	return(DefWindowProc(hWnd, message, wParam, lParam));
 }
 
-bool App::initApplication(HINSTANCE hInstance, const uint32_t& width, const uint32_t& height) {
+bool App::init(HINSTANCE hInstance, const uint32_t& width, const uint32_t& height) {
 	mWidth = width;
 	mHeight = height;
 
