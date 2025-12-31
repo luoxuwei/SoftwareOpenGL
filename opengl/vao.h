@@ -13,6 +13,8 @@ public:
 
 	std::map<uint32_t, BindingDescription> getBindingMap() const;
 
+	void print();
+
 private:
 	//key:bindingId - value:bindingDescription
 	std::map<uint32_t, BindingDescription> mBindingMap;

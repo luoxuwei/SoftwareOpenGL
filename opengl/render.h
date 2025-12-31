@@ -28,22 +28,35 @@ public:
 	//清除画布内容
 	void clear();
 
+	//打印状态机
+	void printVAO(const uint32_t& vaoID);
+
 	uint32_t genBuffer();
 	void deleteBuffer(const uint32_t& bufferID);
+	void bindBuffer(const uint32_t& bufferType, const uint32_t& bufferID);
+	void bufferData(const uint32_t& bufferType, size_t dataSize, void* data);
 
 	uint32_t genVertexArray();
 	void deleteVertexArray(const uint32_t& vaoID);
+	void bindVertexArray(const uint32_t& vaoID);
+	void vertexAttributePointer(
+		const uint32_t& binding,
+		const uint32_t& itemSize,
+		const uint32_t& stride,
+		const uint32_t& offset);
 
 private:
 	static Render* mInstance;
-
 	FrameBuffer* mFrameBuffer{ nullptr };
 
-	//VBO相关/EBO也存在内部
+	//VBO/EBO
+	uint32_t mCurrentVBO{ 0 };
+	uint32_t mCurrentEBO{ 0 };
 	uint32_t mBufferCounter{ 0 };
 	std::map<uint32_t, BufferObject*> mBufferMap;
 
 	//VAO相关
+	uint32_t mCurrentVAO{ 0 };
 	uint32_t mVaoCounter{ 0 };
 	std::map<uint32_t, VertexArrayObject*> mVaoMap;
 };
