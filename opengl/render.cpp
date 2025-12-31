@@ -116,8 +116,15 @@ void Render::setTexture(Image* image) {
 	mImage = image;
 }
 
+void Render::setTextureWrap(uint32_t wrap) {
+	mWrap = wrap;
+}
+
 RGBA Render::sampleNearest(const math::vec2f& uv) {
 	auto myUV = uv;
+
+	checkWrap(myUV.x);
+	checkWrap(myUV.y);
 
 	//四舍五入到最近整数
 	// u = 0 对应 x = 0，u = 1 对应 x = width - 1
@@ -132,8 +139,12 @@ RGBA Render::sampleNearest(const math::vec2f& uv) {
 RGBA Render::sampleBilinear(const math::vec2f& uv) {
 	RGBA resultColor;
 
-	float x = uv.x * static_cast<float>(mImage->mWidth - 1);
-	float y = uv.y * static_cast<float>(mImage->mHeight - 1);
+	auto myUV = uv;
+	checkWrap(myUV.x);
+	checkWrap(myUV.y);
+
+	float x = myUV.x * static_cast<float>(mImage->mWidth - 1);
+	float y = myUV.y * static_cast<float>(mImage->mHeight - 1);
 
 	int left = std::floor(x);
 	int right = std::ceil(x);
@@ -172,45 +183,18 @@ RGBA Render::sampleBilinear(const math::vec2f& uv) {
 	return resultColor;
 }
 
-
-//
-void glViewport(const uint32_t& width, const uint32_t& height, void* buffer) {
-	gl->initSurface(width, height, buffer);
-}
-
-void glClear() {
-	gl->clear();
-}
-
-void glDrawPoint(const uint32_t& x, const uint32_t& y, const RGBA& color) {
-	gl->drawPoint(x, y, color);
-}
-
-void glDrawLine(const Point& p1, const Point& p2) {
-	gl->drawLine(p1, p2);
-}
-
-void glDrawTriangle(const Point& p1, const Point& p2, const Point& p3) {
-	gl->drawTriangle(p1, p2, p3);
-}
-
-void glDrawImage(const Image* image) {
-	gl->drawImage(image);
-}
-
-void glDrawImageWidthAlpha(const Image* image, const uint32_t& alpha) {
-	gl->drawImageWidthAlpha(image, alpha);
-}
-
-//设置状态
-void glSetBlending(bool enable) {
-	gl->setBlending(enable);
-}
-
-void glSetTexture(Image* image) {
-	gl->setTexture(image);
-}
-
-void glSetBilinear(bool enable) {
-	gl->setBilinear(enable);
+void Render::checkWrap(float& n) {
+	if (n > 1.0f || n < 0.0f) {
+		n = FRACTION(n);
+		switch (mWrap) {
+		case TEXTURE_WRAP_REPEAT:
+			n = FRACTION(n + 1);
+			break;
+		case TEXTURE_WRAP_MIRROR:
+			n = 1.0f - FRACTION(n + 1);
+			break;
+		default:
+			break;
+		}
+	}
 }

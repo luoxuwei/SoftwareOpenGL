@@ -17,14 +17,24 @@ Point q1;
 Point q2;
 Point q3;
 
+float speed = 0.01;
+void changeUV() {
+	p1.uv.x += speed;
+	p2.uv.x += speed;
+	p3.uv.x += speed;
+	q1.uv.x += speed;
+	q2.uv.x += speed;
+	q3.uv.x += speed;
+}
+
 void render() {
+	changeUV();
+
 	glClear();
 	glSetTexture(texture);
+	glSetTextureWrap(TEXTURE_WRAP_MIRROR);
 
-	glSetBilinear(false);
 	glDrawTriangle(p1, p2, p3);
-
-	glSetBilinear(true);
 	glDrawTriangle(q1, q2, q3);
 }
 

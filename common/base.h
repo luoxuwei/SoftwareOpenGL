@@ -40,3 +40,6 @@ struct Point {
 	RGBA color;
 	math::vec2f uv;
 };
+
+#define TEXTURE_WRAP_REPEAT 0
+#define TEXTURE_WRAP_MIRROR 1
