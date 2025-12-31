@@ -8,8 +8,9 @@ project(SoftwareOpenGL)
 set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory(app)
+add_subdirectory(opengl)
 
 #本工程所有cpp文件编译链接，生成exe
 add_executable(SoftwareOpenGL "main.cpp")
 
-target_link_libraries(SoftwareOpenGL appLib) 
+target_link_libraries(SoftwareOpenGL appLib openglLib) 

@@ -2,8 +2,25 @@
 #include <Windows.h>
 #include <iostream>
 #include "app/app.h"
+#include "opengl/gl.h"
 
 #pragma comment(linker, "/subsystem:console /entry:wWinMainCRTStartup" )
+
+void render() {
+	glClear();
+
+	//for (uint32_t i = 0; i < app->getWidth(); ++i) {
+	//	sgl->drawPoint(i, 500, RGBA(255, 255, 255));
+	//}
+
+	for (uint32_t i = 0; i < app->getWidth(); ++i) {
+		for (uint32_t j = 0; j < app->getHeight(); ++j) {
+			uint32_t v = std::rand() % 255;
+			RGBA color(v, v, v, v);
+			glDrawPoint(i, j, color);
+		}
+	}
+}
 
 /*
 * 1 主循环流程在winMain函数中
@@ -19,9 +36,13 @@ int APIENTRY wWinMain(
 		return -1;
 	}
 
+	glViewport(app->getWidth(), app->getHeight(), app->getCanvas());
+
 	bool alive = true;
 	while (alive) {
 		alive = app->peekMessage();
+		render();
+		app->show();
 	}
 
 	return 0;

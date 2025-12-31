@@ -20,6 +20,12 @@ public:
 	//每一帧/每一次循环，都会调用，捕获以及分发窗体消息
 	bool peekMessage();
 
+	void show();
+
+	uint32_t getWidth() const { return mWidth; }
+	uint32_t getHeight() const { return mHeight; }
+	void* getCanvas() const { return mCanvasBuffer; }
+
 private:
 	bool createWindow(HINSTANCE hInstance);
 	ATOM registerWindowClass(HINSTANCE hInstance);
@@ -37,4 +43,9 @@ private:
 
 	int			mWidth = 800;
 	int			mHeight = 600;
+
+	HDC			mhDC;//当前窗口主dc
+	HDC			mCanvasDC;//创建的于mhDC相兼容的绘图用的dc
+	HBITMAP		mhBmp;//mCanvasDC内部生成的bitmap
+	void* mCanvasBuffer{ nullptr };//mhBmp对应的内存起始位置指针
 };
