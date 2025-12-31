@@ -15,3 +15,4 @@ void glDrawImageWidthAlpha(const Image* image, const uint32_t& alpha);
 //设置状态
 void glSetBlending(bool enable);
 void glSetTexture(Image* image);
+void glSetBilinear(bool enable);

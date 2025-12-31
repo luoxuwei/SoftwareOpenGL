@@ -72,7 +72,7 @@ void Render::drawTriangle(const Point& p1, const Point& p2, const Point& p3) {
 	RGBA resultColor;
 	for (auto& p : pixels) {
 		if (mImage) {
-			resultColor = sampleNearest(p.uv);
+			resultColor = mEnableBilinear ? sampleBilinear(p.uv) : sampleNearest(p.uv);
 		}
 		else {
 			resultColor = p.color;
@@ -108,6 +108,10 @@ void Render::setBlending(bool enable) {
 	mEnableBlending = enable;
 }
 
+void Render::setBilinear(bool enable) {
+	mEnableBilinear = enable;
+}
+
 void Render::setTexture(Image* image) {
 	mImage = image;
 }
@@ -123,6 +127,49 @@ RGBA Render::sampleNearest(const math::vec2f& uv) {
 
 	int position = y * mImage->mWidth + x;
 	return mImage->mData[position];
+}
+
+RGBA Render::sampleBilinear(const math::vec2f& uv) {
+	RGBA resultColor;
+
+	float x = uv.x * static_cast<float>(mImage->mWidth - 1);
+	float y = uv.y * static_cast<float>(mImage->mHeight - 1);
+
+	int left = std::floor(x);
+	int right = std::ceil(x);
+	int bottom = std::floor(y);
+	int top = std::ceil(y);
+
+	//对上下插值，得到左右
+	float yScale = 0.0f;
+	if (top == bottom) {
+		yScale = 1.0f;
+	}
+	else {
+		yScale = (y - static_cast<float>(bottom)) / static_cast<float>(top - bottom);
+	}
+
+	int positionLeftTop = top * mImage->mWidth + left;
+	int positionLeftBottom = bottom * mImage->mWidth + left;
+	int positionRightTop = top * mImage->mWidth + right;
+	int positionRightBottom = bottom * mImage->mWidth + right;
+
+	RGBA leftColor = lerpRGBA(mImage->mData[positionLeftBottom], mImage->mData[positionLeftTop], yScale);
+	RGBA rightColor = lerpRGBA(mImage->mData[positionRightBottom], mImage->mData[positionRightTop], yScale);
+
+	//对左右插值，得到结果
+	float xScale = 0.0f;
+	if (right == left) {
+		xScale = 1.0f;
+	}
+	else {
+		xScale = (x - static_cast<float>(left)) / static_cast<float>(right - left);
+	}
+
+	resultColor = lerpRGBA(leftColor, rightColor, xScale);
+
+
+	return resultColor;
 }
 
 
@@ -162,4 +209,8 @@ void glSetBlending(bool enable) {
 
 void glSetTexture(Image* image) {
 	gl->setTexture(image);
+}
+
+void glSetBilinear(bool enable) {
+	gl->setBilinear(enable);
 }
