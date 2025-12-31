@@ -1,2 +1,2 @@
-# SoftwareOpenGL-
+# SoftwareOpenGL
 一个简单的软光栅Demo，从零开始实现一个OpenGL风格的渲染器，包括最底层的向量和矩阵的数据结构和相关运算都实现一遍。主要目的是为了梳理图形学知识。
