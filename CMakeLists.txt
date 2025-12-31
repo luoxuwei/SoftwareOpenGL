@@ -16,5 +16,6 @@ add_subdirectory(opengl)
 #本工程所有cpp文件编译链接，生成exe
 add_executable(SoftwareOpenGL "main.cpp")
 add_executable(testMath "testMath.cpp")
+add_executable(testMatrix "testMatrix.cpp")
 
 target_link_libraries(SoftwareOpenGL appLib openglLib) 
