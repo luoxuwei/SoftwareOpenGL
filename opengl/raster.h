@@ -1,29 +1,21 @@
 //Copyright luoxuwei All Rights Reserved.
 #include "../math/math.h"
+#include "data.h"
 
 //传入离散的图元点，返回光栅化后的像素数组
-
-
 void rasterizeLine(
-	std::vector<Point>& results,
-	const Point& v0,
-	const Point& v1
-);
+	std::vector<VsOutput>& results,
+	const VsOutput& v0,
+	const VsOutput& v1);
 
-void interpolantLine(const Point& v0, const Point& v1, Point& target);
+void interpolantLine(const VsOutput& v0, const VsOutput& v1, VsOutput& target);
 
 void rasterizeTriangle(
-	std::vector<Point>& results,
-	const Point& v0,
-	const Point& v1,
-	const Point& v2
-);
+	std::vector<VsOutput>& results,
+	const VsOutput& v0,
+	const VsOutput& v1,
+	const VsOutput& v2);
 
-void interpolantTriangle(const Point& v0, const Point& v1, const Point& v2, Point& p);
+void interpolantTriangle(const VsOutput& v0, const VsOutput& v1, const VsOutput& v2, VsOutput& p);
 
-RGBA lerpRGBA(const RGBA& c0, const RGBA& c1, float weight);
 
-RGBA lerpRGBA(const RGBA& c0, const RGBA& c1, const RGBA& c2, float weight0, float weight1, float weight2);
-
-math::vec2f lerpUV(const math::vec2f& uv0, const math::vec2f& uv1, const math::vec2f& uv2, float weight0, float weight1, float weight2);
-math::vec2f lerpUV(const math::vec2f& uv0, const math::vec2f& uv1, float weight);

@@ -5,6 +5,9 @@
 #include "../app/app.h"
 #include "../app/image.h"
 #include "../math/math.h"
+#include "data.h"
+#include "vao.h"
+#include "vbo.h"
 
 #define gl Render::getInstance()
 
@@ -25,30 +28,22 @@ public:
 	//清除画布内容
 	void clear();
 
-	//传入像素位置，绘制成某种颜色
-	void drawPoint(const uint32_t& x, const uint32_t& y, const RGBA& color);
-	void drawLine(const Point& p1, const Point& p2);
-	void drawTriangle(const Point& p1, const Point& p2, const Point& p3);
-	void drawImage(const Image* image);
+	uint32_t genBuffer();
+	void deleteBuffer(const uint32_t& bufferID);
 
-	void drawImageWidthAlpha(const Image* image, const uint32_t& alpha);
+	uint32_t genVertexArray();
+	void deleteVertexArray(const uint32_t& vaoID);
 
-	//设置状态
-	void setBlending(bool enable);
-	void setBilinear(bool enable);
-	void setTexture(Image* image);
-	void setTextureWrap(uint32_t wrap);
-private:
-	RGBA sampleNearest(const math::vec2f& uv);
-	RGBA sampleBilinear(const math::vec2f& uv);
-	void checkWrap(float& n);
 private:
 	static Render* mInstance;
 
 	FrameBuffer* mFrameBuffer{ nullptr };
-	bool mEnableBlending{ false };
-	bool mEnableBilinear{ false };
-	//纹理贴图
-	Image* mImage{ nullptr };
-	uint32_t mWrap{ TEXTURE_WRAP_REPEAT };
+
+	//VBO相关/EBO也存在内部
+	uint32_t mBufferCounter{ 0 };
+	std::map<uint32_t, BufferObject*> mBufferMap;
+
+	//VAO相关
+	uint32_t mVaoCounter{ 0 };
+	std::map<uint32_t, VertexArrayObject*> mVaoMap;
 };

@@ -4,14 +4,51 @@
 #include "matrix.h"
 #include "../common/base.h"
 
-struct Point {
-	int32_t x;
-	int32_t y;
-	RGBA color;
-	math::vec2f uv;
-};
-
 namespace math {
+
+	//各类lerp函数
+	inline float lerp(const float& v1, const float& v2, const float& weight) {
+		return v2 * weight + (1.0f - weight) * v1;
+	}
+
+	inline vec2f lerp(const vec2f& v1, const vec2f& v2, const float& weight) {
+		return v2 * weight + v1 * (1.0f - weight);
+	}
+
+	inline vec3f lerp(const vec3f& v1, const vec3f& v2, const float& weight) {
+		return v2 * weight + v1 * (1.0f - weight);
+	}
+
+	inline vec4f lerp(const vec4f& v1, const vec4f& v2, const float& weight) {
+		return v2 * weight + v1 * (1.0f - weight);
+	}
+
+	inline RGBA lerp(const RGBA& v1, const RGBA& v2, const float& weight) {
+		RGBA result;
+		result.mR = static_cast<byte>(static_cast<float>(v2.mR) * weight + (1.0f - weight) * static_cast<float>(v1.mR));
+		result.mG = static_cast<byte>(static_cast<float>(v2.mG) * weight + (1.0f - weight) * static_cast<float>(v1.mG));
+		result.mB = static_cast<byte>(static_cast<float>(v2.mB) * weight + (1.0f - weight) * static_cast<float>(v1.mB));
+		result.mA = static_cast<byte>(static_cast<float>(v2.mA) * weight + (1.0f - weight) * static_cast<float>(v1.mA));
+
+		return result;
+	}
+
+
+	inline float lerp(const float& v1, const float& v2, const float& v3, const float& weight1, const float& weight2, const float& weight3) {
+		return v1 * weight1 + v2 * weight2 + v3 * weight3;
+	}
+
+	inline vec2f lerp(const vec2f& v1, const vec2f& v2, const vec2f& v3, const float& weight1, const float& weight2, const float& weight3) {
+		return v1 * weight1 + v2 * weight2 + v3 * weight3;
+	}
+
+	inline vec3f lerp(const vec3f& v1, const vec3f& v2, const vec3f& v3, const float& weight1, const float& weight2, const float& weight3) {
+		return v1 * weight1 + v2 * weight2 + v3 * weight3;
+	}
+
+	inline vec4f lerp(const vec4f& v1, const vec4f& v2, const vec4f& v3, const float& weight1, const float& weight2, const float& weight3) {
+		return v1 * weight1 + v2 * weight2 + v3 * weight3;
+	}
 
 	/*
 	* 标量与向量
@@ -382,7 +419,7 @@ namespace math {
 
 	/*
 	* 旋转函数，会把纯旋转矩阵放在右边，默认先做完所有旋转，再加上原来的平移
-	* 在当前模型坐标系内旋转，所以先在原点旋转完毕，在乘以src
+	* 在当前模型坐标系内旋转，所以先在原点旋转完毕，再乘以src
 	* angle为弧度
 	*/
 	template<typename T>

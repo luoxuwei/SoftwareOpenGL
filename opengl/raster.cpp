@@ -4,15 +4,15 @@
 #include "../math/math.h"
 
 void rasterizeLine(
-	std::vector<Point>& results,
-	const Point& v0,
-	const Point& v1) {
+	std::vector<VsOutput>& results,
+	const VsOutput& v0,
+	const VsOutput& v1) {
 
-	Point start = v0;
-	Point end = v1;
+	VsOutput start = v0;
+	VsOutput end = v1;
 
 	//1 保证x方向是从小到大的
-	if (start.x > end.x) {
+	if (start.mPosition.x > end.mPosition.x) {
 		auto tmp = start;
 		start = end;
 		end = tmp;
@@ -22,32 +22,32 @@ void rasterizeLine(
 
 	//2 保证y方向也是从小到大，如果需要翻转，必须记录
 	bool flipY = false;
-	if (start.y > end.y) {
-		start.y *= -1.0f;
-		end.y *= -1.0f;
+	if (start.mPosition.y > end.mPosition.y) {
+		start.mPosition.y *= -1.0f;
+		end.mPosition.y *= -1.0f;
 		flipY = true;
 	}
 
 	//3 保证斜率在0-1之间，如果需要调整，必须记录
-	int deltaX = static_cast<int>(end.x - start.x);
-	int deltaY = static_cast<int>(end.y - start.y);
+	int deltaX = static_cast<int>(end.mPosition.x - start.mPosition.x);
+	int deltaY = static_cast<int>(end.mPosition.y - start.mPosition.y);
 
 	bool swapXY = false;
 	if (deltaX < deltaY) {
-		std::swap(start.x, start.y);
-		std::swap(end.x, end.y);
+		std::swap(start.mPosition.x, start.mPosition.y);
+		std::swap(end.mPosition.x, end.mPosition.y);
 		std::swap(deltaX, deltaY);
 		swapXY = true;
 	}
 
 	//4 brensenham
-	int currentX = static_cast<int>(start.x);
-	int currentY = static_cast<int>(start.y);
+	int currentX = static_cast<int>(start.mPosition.x);
+	int currentY = static_cast<int>(start.mPosition.y);
 
 	int resultX = 0;
 	int resultY = 0;
 
-	Point currentPoint;
+	VsOutput currentVsOutput;
 	int p = 2 * deltaY - deltaX;
 
 	for (int i = 0; i < deltaX; ++i) {
@@ -72,60 +72,59 @@ void rasterizeLine(
 		}
 
 		//产生新顶点
-		currentPoint.x = resultX;
-		currentPoint.y = resultY;
+		currentVsOutput.mPosition.x = resultX;
+		currentVsOutput.mPosition.y = resultY;
 
-		interpolantLine(start, end, currentPoint);
+		interpolantLine(start, end, currentVsOutput);
 
-		results.push_back(currentPoint);
+		results.push_back(currentVsOutput);
 	}
 
 }
 
-void interpolantLine(const Point& v0, const Point& v1, Point& target) {
+void interpolantLine(const VsOutput& v0, const VsOutput& v1, VsOutput& target) {
 	float weight = 1.0f;
-	if (v1.x != v0.x) {
+	if (v1.mPosition.x != v0.mPosition.x) {
 		//用x做比例
-		weight = (float)(target.x - v0.x) / (float)(v1.x - v0.x);
+		weight = (float)(target.mPosition.x - v0.mPosition.x) / (float)(v1.mPosition.x - v0.mPosition.x);
 	}
-	else if (v1.y != v0.y) {
+	else if (v1.mPosition.y != v0.mPosition.y) {
 		//用y做比例
-		weight = (float)(target.y - v0.y) / (float)(v1.y - v0.y);
+		weight = (float)(target.mPosition.y - v0.mPosition.y) / (float)(v1.mPosition.y - v0.mPosition.y);
 	}
 
-	target.color = lerpRGBA(v0.color, v1.color, weight);
-	//对于uv坐标的插值
-	target.uv = lerpUV(v0.uv, v1.uv, weight);
+	target.mColor = math::lerp(v0.mColor, v1.mColor, weight);
+	target.mUV = math::lerp(v0.mUV, v1.mUV, weight);
 }
 
 void rasterizeTriangle(
-	std::vector<Point>& results,
-	const Point& v0,
-	const Point& v1,
-	const Point& v2) {
-	int maxX = static_cast<int>(std::max(v0.x, std::max(v1.x, v2.x)));
-	int minX = static_cast<int>(std::min(v0.x, std::min(v1.x, v2.x)));
-	int maxY = static_cast<int>(std::max(v0.y, std::max(v1.y, v2.y)));
-	int minY = static_cast<int>(std::min(v0.y, std::min(v1.y, v2.y)));
+	std::vector<VsOutput>& results,
+	const VsOutput& v0,
+	const VsOutput& v1,
+	const VsOutput& v2) {
+	int maxX = static_cast<int>(std::max(v0.mPosition.x, std::max(v1.mPosition.x, v2.mPosition.x)));
+	int minX = static_cast<int>(std::min(v0.mPosition.x, std::min(v1.mPosition.x, v2.mPosition.x)));
+	int maxY = static_cast<int>(std::max(v0.mPosition.y, std::max(v1.mPosition.y, v2.mPosition.y)));
+	int minY = static_cast<int>(std::min(v0.mPosition.y, std::min(v1.mPosition.y, v2.mPosition.y)));
 
 	math::vec2f pv0, pv1, pv2;
-	Point result;
+	VsOutput result;
 	for (int i = minX; i <= maxX; ++i) {
 		for (int j = minY; j <= maxY; ++j) {
-			pv0 = math::vec2f(v0.x - i, v0.y - j);
-			pv1 = math::vec2f(v1.x - i, v1.y - j);
-			pv2 = math::vec2f(v2.x - i, v2.y - j);
+			pv0 = math::vec2f(v0.mPosition.x - i, v0.mPosition.y - j);
+			pv1 = math::vec2f(v1.mPosition.x - i, v1.mPosition.y - j);
+			pv2 = math::vec2f(v2.mPosition.x - i, v2.mPosition.y - j);
 
 			auto cross1 = math::cross(pv0, pv1);
 			auto cross2 = math::cross(pv1, pv2);
 			auto cross3 = math::cross(pv2, pv0);
 
-			bool negativeAll = cross1 < 0 && cross2 < 0 && cross3 < 0;
-			bool positiveAll = cross1 > 0 && cross2 > 0 && cross3 > 0;
+			bool negativeAll = cross1 <= 0 && cross2 <= 0 && cross3 <= 0;
+			bool positiveAll = cross1 >= 0 && cross2 >= 0 && cross3 >= 0;
 
 			if (negativeAll || positiveAll) {
-				result.x = i;
-				result.y = j;
+				result.mPosition.x = i;
+				result.mPosition.y = j;
 				interpolantTriangle(v0, v1, v2, result);
 
 				results.push_back(result);
@@ -134,14 +133,14 @@ void rasterizeTriangle(
 	}
 }
 
-void interpolantTriangle(const Point& v0, const Point& v1, const Point& v2, Point& p) {
-	auto e1 = math::vec2f(v1.x - v0.x, v1.y - v0.y);
-	auto e2 = math::vec2f(v2.x - v0.x, v2.y - v0.y);
+void interpolantTriangle(const VsOutput& v0, const VsOutput& v1, const VsOutput& v2, VsOutput& p) {
+	auto e1 = math::vec2f(v1.mPosition.x - v0.mPosition.x, v1.mPosition.y - v0.mPosition.y);
+	auto e2 = math::vec2f(v2.mPosition.x - v0.mPosition.x, v2.mPosition.y - v0.mPosition.y);
 	float sumArea = std::abs(math::cross(e1, e2));
 
-	auto pv0 = math::vec2f(v0.x - p.x, v0.y - p.y);
-	auto pv1 = math::vec2f(v1.x - p.x, v1.y - p.y);
-	auto pv2 = math::vec2f(v2.x - p.x, v2.y - p.y);
+	auto pv0 = math::vec2f(v0.mPosition.x - p.mPosition.x, v0.mPosition.y - p.mPosition.y);
+	auto pv1 = math::vec2f(v1.mPosition.x - p.mPosition.x, v1.mPosition.y - p.mPosition.y);
+	auto pv2 = math::vec2f(v2.mPosition.x - p.mPosition.x, v2.mPosition.y - p.mPosition.y);
 	//计算v0的权重
 
 	float v0Area = std::abs(math::cross(pv1, pv2));
@@ -153,44 +152,8 @@ void interpolantTriangle(const Point& v0, const Point& v1, const Point& v2, Poin
 	float weight2 = v2Area / sumArea;
 
 	//对于颜色的插值
-	p.color = lerpRGBA(v0.color, v1.color, v2.color, weight0, weight1, weight2);
+	p.mColor = math::lerp(v0.mColor, v1.mColor, v2.mColor, weight0, weight1, weight2);
 
 	//对于uv坐标的插值
-	p.uv = lerpUV(v0.uv, v1.uv, v2.uv, weight0, weight1, weight2);
-}
-
-RGBA lerpRGBA(const RGBA& c0, const RGBA& c1, float weight) {
-	RGBA result;
-
-	result.mR = static_cast<float>(c1.mR) * weight + static_cast<float>(c0.mR) * (1.0f - weight);
-	result.mG = static_cast<float>(c1.mG) * weight + static_cast<float>(c0.mG) * (1.0f - weight);
-	result.mB = static_cast<float>(c1.mB) * weight + static_cast<float>(c0.mB) * (1.0f - weight);
-	result.mA = static_cast<float>(c1.mA) * weight + static_cast<float>(c0.mA) * (1.0f - weight);
-
-	return result;
-}
-
-RGBA lerpRGBA(const RGBA& c0, const RGBA& c1, const RGBA& c2, float weight0, float weight1, float weight2) {
-	RGBA result;
-
-	result.mR = static_cast<float>(c0.mR) * weight0 + static_cast<float>(c1.mR) * weight1 + static_cast<float>(c2.mR) * weight2;
-	result.mG = static_cast<float>(c0.mG) * weight0 + static_cast<float>(c1.mG) * weight1 + static_cast<float>(c2.mG) * weight2;
-	result.mB = static_cast<float>(c0.mB) * weight0 + static_cast<float>(c1.mB) * weight1 + static_cast<float>(c2.mB) * weight2;
-	result.mA = static_cast<float>(c0.mA) * weight0 + static_cast<float>(c1.mA) * weight1 + static_cast<float>(c2.mA) * weight2;
-
-	return result;
-}
-
-math::vec2f lerpUV(const math::vec2f& uv0, const math::vec2f& uv1, const math::vec2f& uv2, float weight0, float weight1, float weight2) {
-	math::vec2f uv;
-
-	uv = uv0 * weight0 + uv1 * weight1 + uv2 * weight2;
-	return uv;
-}
-
-math::vec2f lerpUV(const math::vec2f& uv0, const math::vec2f& uv1, float weight) {
-	math::vec2f uv;
-
-	uv = uv1 * weight + uv0 * (1.0f - weight);
-	return uv;
+	p.mUV = math::lerp(v0.mUV, v1.mUV, v2.mUV, weight0, weight1, weight2);
 }
