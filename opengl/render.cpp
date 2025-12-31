@@ -36,7 +36,24 @@ void Render::drawPoint(const uint32_t& x, const uint32_t& y, const RGBA& color) 
 
 	//从窗口左下角开始算起
 	uint32_t pixelPos = y * mFrameBuffer->mWidth + x; // 在最后一行加上x的偏移量
-	mFrameBuffer->mColorBuffer[pixelPos] = color;
+
+
+	RGBA result = color;
+
+	if (mEnableBlending) {
+		//加入blending
+		auto src = color;
+		auto dst = mFrameBuffer->mColorBuffer[pixelPos];
+		float weight = static_cast<float>(src.mA) / 255.0f;
+
+		result.mR = static_cast<float>(src.mR) * weight + static_cast<float>(dst.mR) * (1.0f - weight);
+		result.mG = static_cast<float>(src.mG) * weight + static_cast<float>(dst.mG) * (1.0f - weight);
+		result.mB = static_cast<float>(src.mB) * weight + static_cast<float>(dst.mB) * (1.0f - weight);
+		result.mA = static_cast<float>(src.mA) * weight + static_cast<float>(dst.mA) * (1.0f - weight);
+	}
+
+
+	mFrameBuffer->mColorBuffer[pixelPos] = result;
 }
 
 void Render::drawLine(const Point& p1, const Point& p2) {
@@ -55,6 +72,32 @@ void Render::drawTriangle(const Point& p1, const Point& p2, const Point& p3) {
 	for (auto p : pixels) {
 		drawPoint(p.x, p.y, p.color);
 	}
+}
+
+
+void Render::drawImage(const Image* image) {
+	for (uint32_t i = 0; i < image->mWidth; ++i) {
+		for (uint32_t j = 0; j < image->mHeight; ++j) {
+			drawPoint(i, j, image->mData[j * image->mWidth + i]);
+		}
+	}
+}
+
+void Render::drawImageWidthAlpha(const Image* image, const uint32_t& alpha) {
+	RGBA color;
+	for (uint32_t i = 0; i < image->mWidth; ++i) {
+		for (uint32_t j = 0; j < image->mHeight; ++j) {
+			color = image->mData[j * image->mWidth + i];
+			color.mA = alpha;
+			drawPoint(i, j, color);
+		}
+	}
+}
+
+
+//设置状态
+void Render::setBlending(bool enable) {
+	mEnableBlending = enable;
 }
 
 
@@ -78,3 +121,17 @@ void glDrawLine(const Point& p1, const Point& p2) {
 void glDrawTriangle(const Point& p1, const Point& p2, const Point& p3) {
 	gl->drawTriangle(p1, p2, p3);
 }
+
+void glDrawImage(const Image* image) {
+	gl->drawImage(image);
+}
+
+void glDrawImageWidthAlpha(const Image* image, const uint32_t& alpha) {
+	gl->drawImageWidthAlpha(image, alpha);
+}
+
+//设置状态
+void glSetBlending(bool enable) {
+	gl->setBlending(enable);
+}
+

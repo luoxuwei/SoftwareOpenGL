@@ -3,6 +3,7 @@
 #include "../common/base.h"
 #include "frameBuffer.h"
 #include "../app/app.h"
+#include "../app/image.h"
 
 #define gl Render::getInstance()
 
@@ -27,8 +28,15 @@ public:
 	void drawPoint(const uint32_t& x, const uint32_t& y, const RGBA& color);
 	void drawLine(const Point& p1, const Point& p2);
 	void drawTriangle(const Point& p1, const Point& p2, const Point& p3);
+	void drawImage(const Image* image);
+
+	void drawImageWidthAlpha(const Image* image, const uint32_t& alpha);
+
+	//设置状态
+	void setBlending(bool enable);
 private:
 	static Render* mInstance;
 
 	FrameBuffer* mFrameBuffer{ nullptr };
+	bool mEnableBlending{ false };
 };
