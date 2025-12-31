@@ -30,6 +30,10 @@ void Render::clear() {
 }
 
 void Render::drawPoint(const uint32_t& x, const uint32_t& y, const RGBA& color) {
+	if (x >= mFrameBuffer->mWidth || y >= mFrameBuffer->mHeight) {
+		return;
+	}
+
 	//从窗口左下角开始算起
 	uint32_t pixelPos = y * mFrameBuffer->mWidth + x; // 在最后一行加上x的偏移量
 	mFrameBuffer->mColorBuffer[pixelPos] = color;
@@ -38,6 +42,15 @@ void Render::drawPoint(const uint32_t& x, const uint32_t& y, const RGBA& color) 
 void Render::drawLine(const Point& p1, const Point& p2) {
 	std::vector<Point> pixels;
 	rasterizeLine(pixels, p1, p2);
+
+	for (auto p : pixels) {
+		drawPoint(p.x, p.y, p.color);
+	}
+}
+
+void Render::drawTriangle(const Point& p1, const Point& p2, const Point& p3) {
+	std::vector<Point> pixels;
+	rasterizeTriangle(pixels, p1, p2, p3);
 
 	for (auto p : pixels) {
 		drawPoint(p.x, p.y, p.color);
@@ -60,4 +73,8 @@ void glDrawPoint(const uint32_t& x, const uint32_t& y, const RGBA& color) {
 
 void glDrawLine(const Point& p1, const Point& p2) {
 	gl->drawLine(p1, p2);
+}
+
+void glDrawTriangle(const Point& p1, const Point& p2, const Point& p3) {
+	gl->drawTriangle(p1, p2, p3);
 }

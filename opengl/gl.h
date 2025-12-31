@@ -6,3 +6,4 @@ void glViewport(const uint32_t& width, const uint32_t& height, void* buffer = nu
 void glClear();
 void glDrawPoint(const uint32_t& x, const uint32_t& y, const RGBA& color);
 void glDrawLine(const Point& p1, const Point& p2);
+void glDrawTriangle(const Point& p1, const Point& p2, const Point& p3);
