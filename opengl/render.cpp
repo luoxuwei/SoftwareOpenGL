@@ -2,6 +2,7 @@
 #include "render.h"
 #include "gl.h"
 #include "raster.h"
+#include "clipper.h"
 
 Render* Render::mInstance = nullptr;
 Render* Render::getInstance() {
@@ -174,11 +175,22 @@ void Render::drawElement(const uint32_t& drawMode, const uint32_t& first, const 
 	if (vsOutputs.empty()) return;
 
 	/*
+	* Clip Space处理阶段
+	* 作用：
+	*	在剪裁空间，对所有输出的图元进行剪裁拼接等
+	*/
+	std::vector<VsOutput> clipOutputs{};
+	Clipper::doClipSpace(drawMode, vsOutputs, clipOutputs);
+	if (clipOutputs.empty()) return;
+
+	vsOutputs.clear();
+
+	/*
 	* NDC处理阶段
 	* 作用：
 	*	将顶点转化到NDC下
 	*/
-	for (auto& output : vsOutputs) {
+	for (auto& output : clipOutputs) {
 		perspectiveDivision(output);
 	}
 
@@ -187,7 +199,7 @@ void Render::drawElement(const uint32_t& drawMode, const uint32_t& first, const 
 	* 作用：
 	*	将NDC下的点，通过screenMatrix，转化到屏幕空间
 	*/
-	for (auto& output : vsOutputs) {
+	for (auto& output : clipOutputs) {
 		screenMapping(output);
 	}
 
@@ -197,7 +209,7 @@ void Render::drawElement(const uint32_t& drawMode, const uint32_t& first, const 
 	*	离散出所有需要的Fragment
 	*/
 	std::vector<VsOutput> rasterOutputs;
-	rasterize(rasterOutputs, drawMode, vsOutputs);
+	rasterize(rasterOutputs, drawMode, clipOutputs);
 
 
 	if (rasterOutputs.empty()) return;
