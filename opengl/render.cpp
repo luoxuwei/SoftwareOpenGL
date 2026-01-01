@@ -215,6 +215,15 @@ void Render::drawElement(const uint32_t& drawMode, const uint32_t& first, const 
 	if (rasterOutputs.empty()) return;
 
 	/*
+	* 透视恢复处理阶段
+	* 作用：
+	*	离散出来的像素插值结果，需要乘以自身的w值恢复到正常态
+	*/
+	for (auto& output : rasterOutputs) {
+		perspectiveRecover(output);
+	}
+
+	/*
 	* 颜色输出处理阶段
 	* 作用：
 	*	 将颜色进行输出
@@ -249,37 +258,49 @@ void Render::vertexShaderStage(
 }
 
 void Render::perspectiveDivision(VsOutput& vsOutput) {
-	float oneOverW = 1.0f / vsOutput.mPosition.w;
+	vsOutput.mOneOverW = 1.0f / vsOutput.mPosition.w;
 
-	vsOutput.mPosition *= oneOverW;
+	vsOutput.mPosition *= vsOutput.mOneOverW;
 	vsOutput.mPosition.w = 1.0f;
 
-	////修剪毛刺
-	//if (vsOutput.mPosition.x < -1.0f) {
-	//	vsOutput.mPosition.x = -1.0f;
-	//}
+	vsOutput.mColor *= vsOutput.mOneOverW;
+	vsOutput.mUV *= vsOutput.mOneOverW;
 
-	//if (vsOutput.mPosition.x > 1.0f) {
-	//	vsOutput.mPosition.x = 1.0f;
-	//}
+	trim(vsOutput);
+}
 
-	//if (vsOutput.mPosition.y < -1.0f) {
-	//	vsOutput.mPosition.y = -1.0f;
-	//}
-
-	//if (vsOutput.mPosition.y > 1.0f) {
-	//	vsOutput.mPosition.y = 1.0f;
-	//}
-
-	//if (vsOutput.mPosition.z < -1.0f) {
-	//	vsOutput.mPosition.z = -1.0f;
-	//}
-
-	//if (vsOutput.mPosition.z > 1.0f) {
-	//	vsOutput.mPosition.z = 1.0f;
-	//}
+void Render::perspectiveRecover(VsOutput& vsOutput) {
+	vsOutput.mColor /= vsOutput.mOneOverW;
+	vsOutput.mUV /= vsOutput.mOneOverW;
 }
 
 void Render::screenMapping(VsOutput& vsOutput) {
 	vsOutput.mPosition = mScreenMatrix * vsOutput.mPosition;
+}
+
+void Render::trim(VsOutput& vsOutput) {
+	//修剪毛刺,边界求交点的时候，可能会产生超过-1-1现象
+	if (vsOutput.mPosition.x < -1.0f) {
+		vsOutput.mPosition.x = -1.0f;
+	}
+
+	if (vsOutput.mPosition.x > 1.0f) {
+		vsOutput.mPosition.x = 1.0f;
+	}
+
+	if (vsOutput.mPosition.y < -1.0f) {
+		vsOutput.mPosition.y = -1.0f;
+	}
+
+	if (vsOutput.mPosition.y > 1.0f) {
+		vsOutput.mPosition.y = 1.0f;
+	}
+
+	if (vsOutput.mPosition.z < -1.0f) {
+		vsOutput.mPosition.z = -1.0f;
+	}
+
+	if (vsOutput.mPosition.z > 1.0f) {
+		vsOutput.mPosition.z = 1.0f;
+	}
 }

@@ -59,7 +59,10 @@ private:
 		const uint32_t count);
 
 	void perspectiveDivision(VsOutput& vsOutput);
+	void perspectiveRecover(VsOutput& vsOutput);
 	void screenMapping(VsOutput& vsOutput);
+
+	void trim(VsOutput& vsOutput);
 
 private:
 	static Render* mInstance;

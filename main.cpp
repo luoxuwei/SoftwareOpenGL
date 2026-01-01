@@ -32,10 +32,10 @@ math::mat4f viewMatrix;
 math::mat4f perspectiveMatrix;
 
 float angle = 0.0f;
-float cameraZ = 3;
+float cameraZ = 2.0f;
 void transform() {
-	angle += 0.1f;
-	cameraZ -= 0.01f;
+	angle += 0.003f;
+	//cameraZ -= 0.01f;
 
 	//模型变换
 	modelMatrix = math::rotate(math::mat4f(1.0f), angle, math::vec3f{ 0.0f, 1.0f, 0.0f });
