@@ -11,7 +11,7 @@ BufferObject::~BufferObject() {
 
 void BufferObject::setBufferData(size_t dataSize, void* data) {
 	if (mBuffer != nullptr && mBufferSize < dataSize) {
-		delete[]mBuffer;
+		delete []mBuffer;
 		mBuffer = nullptr;
 	}
 
@@ -25,4 +25,8 @@ void BufferObject::setBufferData(size_t dataSize, void* data) {
 
 byte* BufferObject::getBuffer() const {
 	return mBuffer;
+}
+
+size_t BufferObject::getSize() const {
+	return mBufferSize;
 }

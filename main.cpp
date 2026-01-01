@@ -5,6 +5,7 @@
 #include "opengl/gl.h"
 #include "app/image.h"
 #include "math/math.h"
+#include "opengl/shader/defaultShader.h"
 
 #pragma comment(linker, "/subsystem:console /entry:wWinMainCRTStartup" )
 
@@ -22,7 +23,29 @@ uint32_t ebo = 0;
 //本三角形专属vao
 uint32_t vao = 0;
 
+//使用的Shader
+DefaultShader* shader = nullptr;
+
+//mvp变换矩阵
+math::mat4f modelMatrix;
+math::mat4f viewMatrix;
+math::mat4f perspectiveMatrix;
+
+float angle = 0.0f;
+void transform() {
+	angle += 0.01f;
+	//模型变换
+	modelMatrix = math::rotate(math::mat4f(1.0f), angle, math::vec3f{ 0.0f, 1.0f, 0.0f });
+}
+
 void prepare() {
+	shader = new DefaultShader();
+
+	perspectiveMatrix = math::perspective(60.0f, (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+
+	auto cameraModelMatrix = math::translate(math::mat4f(1.0f), math::vec3f{ 0.0f, 0.0f, 3.0f });
+	viewMatrix = math::inverse(cameraModelMatrix);
+
 	float positions[] = {
 		-0.5f, -0.5f, 0.0f,
 		-0.5f, 0.5f, 0.0f,
@@ -71,12 +94,19 @@ void prepare() {
 
 	glBindBuffer(ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-
-	printVAO(vao);
 }
 
 void render() {
+	transform();
+	shader->mModelMatrix = modelMatrix;
+	shader->mViewMatrix = viewMatrix;
+	shader->mProjectionMatrix = perspectiveMatrix;
+
 	glClear();
+	glUseProgram(shader);
+	glBindVertexArray(vao);
+	glBindBuffer(ELEMENT_ARRAY_BUFFER, ebo);
+	glDrawElement(DRAW_TRIANGLES, 0, 3);
 }
 
 /*
@@ -89,7 +119,7 @@ int APIENTRY wWinMain(
 	_In_ LPWSTR    lpCmdLine,		//应用程序运行参数
 	_In_ int       nCmdShow)		//窗口如何显示（最大化、最小化、隐藏），不需理会
 {
-	if (!app->init(hInstance, 800, 600)) {
+	if (!app->init(hInstance, WIDTH, HEIGHT)) {
 		return -1;
 	}
 
@@ -103,6 +133,8 @@ int APIENTRY wWinMain(
 		render();
 		app->show();
 	}
+
+	delete shader;
 
 	return 0;
 }

@@ -18,4 +18,4 @@ add_executable(SoftwareOpenGL "main.cpp")
 add_executable(testMath "testMath.cpp")
 add_executable(testMatrix "testMatrix.cpp")
 
-target_link_libraries(SoftwareOpenGL appLib openglLib) 
+target_link_libraries(SoftwareOpenGL appLib openglLib)

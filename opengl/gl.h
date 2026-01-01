@@ -48,6 +48,14 @@ inline void glVertexAttributePointer(
 	gl->vertexAttributePointer(binding, itemSize, stride, offset);
 }
 
+inline void glUseProgram(Shader *shader) {
+	gl->useProgram(shader);
+}
+
+inline void glDrawElement(const uint32_t& drawMode, const uint32_t& first, const uint32_t& count) {
+	gl->drawElement(drawMode, first, count);
+}
+
 inline void printVAO(const uint32_t& vaoID) {
 	gl->printVAO(vaoID);
 }

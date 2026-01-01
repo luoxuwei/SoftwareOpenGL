@@ -3,6 +3,12 @@
 #include "data.h"
 
 //传入离散的图元点，返回光栅化后的像素数组
+void rasterize(
+	std::vector<VsOutput>& results,
+	const uint32_t& drawMode,
+	const std::vector<VsOutput>& inputs
+);
+
 void rasterizeLine(
 	std::vector<VsOutput>& results,
 	const VsOutput& v0,

@@ -8,6 +8,7 @@
 #include "data.h"
 #include "vao.h"
 #include "vbo.h"
+#include "shader/shader.h"
 
 #define gl Render::getInstance()
 
@@ -45,6 +46,21 @@ public:
 		const uint32_t& stride,
 		const uint32_t& offset);
 
+	void useProgram(Shader* shader);
+
+	void drawElement(const uint32_t& drawMode, const uint32_t& first, const uint32_t& count);
+
+private:
+	void vertexShaderStage(
+		std::vector<VsOutput>& vsOutputs,
+		const VertexArrayObject* vao,
+		const BufferObject* ebo,
+		const uint32_t first,
+		const uint32_t count);
+
+	void perspectiveDivision(VsOutput& vsOutput);
+	void screenMapping(VsOutput& vsOutput);
+
 private:
 	static Render* mInstance;
 	FrameBuffer* mFrameBuffer{ nullptr };
@@ -59,4 +75,7 @@ private:
 	uint32_t mCurrentVAO{ 0 };
 	uint32_t mVaoCounter{ 0 };
 	std::map<uint32_t, VertexArrayObject*> mVaoMap;
+
+	Shader* mShader{ nullptr };
+	math::mat4f mScreenMatrix;
 };
