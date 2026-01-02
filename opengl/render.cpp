@@ -37,8 +37,9 @@ void Render::initSurface(const uint32_t& width, const uint32_t& height, void* bu
 }
 
 void Render::clear() {
-	size_t pixelSize = mFrameBuffer->mWidth * mFrameBuffer->mHeight; // 总共的像素数
+	size_t pixelSize = mFrameBuffer->mWidth * mFrameBuffer->mHeight;
 	std::fill_n(mFrameBuffer->mColorBuffer, pixelSize, RGBA(0, 0, 0, 0));
+	std::fill_n(mFrameBuffer->mDepthBuffer, pixelSize, 1.0f);
 }
 
 void Render::printVAO(const uint32_t& vaoID) {
@@ -145,6 +146,9 @@ void Render::enable(const uint32_t& value) {
 		case CULL_FACE:
 			mEnableCullFace = true;
 			break;
+		case DEPTH_TEST:
+			mEnableDepthTest = true;
+			break;
 		default:
 			break;
 	}
@@ -155,6 +159,9 @@ void Render::disable(const uint32_t& value) {
 	{
 		case CULL_FACE:
 			mEnableCullFace = false;
+			break;
+		case DEPTH_TEST:
+			mEnableDepthTest = false;
 			break;
 		default:
 			break;
@@ -280,6 +287,12 @@ void Render::drawElement(const uint32_t& drawMode, const uint32_t& first, const 
 	for (uint32_t i = 0; i < rasterOutputs.size(); ++i) {
 		mShader->fragmentShader(rasterOutputs[i], fsOutput);
 		pixelPos = fsOutput.mPixelPos.y * mFrameBuffer->mWidth + fsOutput.mPixelPos.x;
+
+		//深度测试
+		if (mEnableDepthTest && !depthTest(fsOutput)) {
+			continue;
+		}
+
 		mFrameBuffer->mColorBuffer[pixelPos] = fsOutput.mColor;
 	}
 }
@@ -350,4 +363,34 @@ void Render::trim(VsOutput& vsOutput) {
 	if (vsOutput.mPosition.z > 1.0f) {
 		vsOutput.mPosition.z = 1.0f;
 	}
+}
+
+bool Render::depthTest(const FsOutput& output) {
+	uint32_t pixelPos = output.mPixelPos.y * mFrameBuffer->mWidth + output.mPixelPos.x;
+	float oldDepth = mFrameBuffer->mDepthBuffer[pixelPos];
+	switch (mDepthFunc)
+	{
+		case DEPTH_LESS:
+			if (output.mDepth < oldDepth) {
+				mFrameBuffer->mDepthBuffer[pixelPos] = output.mDepth;
+				return true;
+			}
+			else {
+				return false;
+			}
+			break;
+		case DEPTH_GREATER:
+			if (output.mDepth > oldDepth) {
+				mFrameBuffer->mDepthBuffer[pixelPos] = output.mDepth;
+				return true;
+			}
+			else {
+				return false;
+			}
+			break;
+		default:
+			return false;
+			break;
+	}
+
 }
