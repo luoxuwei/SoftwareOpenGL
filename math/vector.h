@@ -4,7 +4,6 @@
 #include <assert.h>
 
 namespace math {
-
 	template<typename T>
 	class Vector3;
 
@@ -134,8 +133,8 @@ namespace math {
 	public:
 		Vector3() { x = y = z = 0; }
 		Vector3(T x, T y, T z) :x(x), y(y), z(z) {}
-		Vector3(const Vector3<T>& v) :x(v.x), y(v.y), z(v.z) {}
-		Vector3(const Vector4<T>& v) :x(v.x), y(v.y), z(v.z) {}
+		Vector3(const Vector3<T>&v):x(v.x), y(v.y), z(v.z) {}
+		Vector3(const Vector4<T>&v):x(v.x), y(v.y), z(v.z) {}
 
 		T operator[](int i) const {
 			assert(i >= 0 && i <= 2);
@@ -224,7 +223,8 @@ namespace math {
 	public:
 		Vector4() { x = y = z = w = 0; }
 		Vector4(T x, T y, T z, T w) :x(x), y(y), z(z), w(w) {}
-		Vector4(const Vector4<T>& v) :x(v.x), y(v.y), z(v.z), w(v.w) {}
+		Vector4(const Vector4<T>&v):x(v.x), y(v.y), z(v.z), w(v.w) {}
+		Vector4(const Vector3<T>& v, T vw) :x(v.x), y(v.y), z(v.z), w(vw) {}
 
 		T operator[](int i) const {
 			assert(i >= 0 && i <= 3);
@@ -317,8 +317,12 @@ namespace math {
 
 	using vec2f = Vector2<float>;
 	using vec2i = Vector2<int>;
+	using vec2d = Vector2<double>;
 	using vec3f = Vector3<float>;
 	using vec3i = Vector3<int>;
+	using vec3d = Vector3<double>;
 	using vec4f = Vector4<float>;
 	using vec4i = Vector4<int>;
+	using vec4d = Vector4<double>;
+
 }

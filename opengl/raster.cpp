@@ -105,7 +105,8 @@ void interpolantLine(const VsOutput& v0, const VsOutput& v1, VsOutput& target) {
 	if (v1.mPosition.x != v0.mPosition.x) {
 		//用x做比例
 		weight = (float)(target.mPosition.x - v0.mPosition.x) / (float)(v1.mPosition.x - v0.mPosition.x);
-	}else if (v1.mPosition.y != v0.mPosition.y) {
+	}
+	else if (v1.mPosition.y != v0.mPosition.y) {
 		//用y做比例
 		weight = (float)(target.mPosition.y - v0.mPosition.y) / (float)(v1.mPosition.y - v0.mPosition.y);
 	}
@@ -113,6 +114,7 @@ void interpolantLine(const VsOutput& v0, const VsOutput& v1, VsOutput& target) {
 	target.mOneOverW = math::lerp(v0.mOneOverW, v1.mOneOverW, weight);
 	target.mPosition.z = math::lerp(v0.mPosition.z, v1.mPosition.z, weight);
 	target.mColor = math::lerp(v0.mColor, v1.mColor, weight);
+	target.mNormal = math::lerp(v0.mNormal, v1.mNormal, weight);
 	target.mUV = math::lerp(v0.mUV, v1.mUV, weight);
 }
 
@@ -166,9 +168,9 @@ void interpolantTriangle(const VsOutput& v0, const VsOutput& v1, const VsOutput&
 	float v1Area = std::abs(math::cross(pv0, pv2));
 	float v2Area = std::abs(math::cross(pv0, pv1));
 
-	float weight0 = v0Area / sumArea;
-	float weight1 = v1Area / sumArea;
-	float weight2 = v2Area / sumArea;
+	float weight0 = sumArea != 0 ? v0Area / sumArea : 1.0f;
+	float weight1 = sumArea != 0 ? v1Area / sumArea : 0.0f;
+	float weight2 = sumArea != 0 ? v2Area / sumArea : 0.0f;
 
 	//插值1/w，用于透视恢复
 	p.mOneOverW = math::lerp(v0.mOneOverW, v1.mOneOverW, v2.mOneOverW, weight0, weight1, weight2);
@@ -178,6 +180,9 @@ void interpolantTriangle(const VsOutput& v0, const VsOutput& v1, const VsOutput&
 
 	//对于颜色的插值
 	p.mColor = math::lerp(v0.mColor, v1.mColor, v2.mColor, weight0, weight1, weight2);
+
+	//对于法线的插值
+	p.mNormal = math::lerp(v0.mNormal, v1.mNormal, v2.mNormal, weight0, weight1, weight2);
 
 	//对于uv坐标的插值
 	p.mUV = math::lerp(v0.mUV, v1.mUV, v2.mUV, weight0, weight1, weight2);

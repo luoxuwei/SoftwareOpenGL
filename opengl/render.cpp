@@ -311,7 +311,7 @@ void Render::drawElement(const uint32_t& drawMode, const uint32_t& first, const 
 			}
 		}
 	}
-
+	//clipOutputs.clear();
 	/*
 	* 屏幕映射处理阶段
 	* 作用：
@@ -393,6 +393,7 @@ void Render::perspectiveDivision(VsOutput& vsOutput) {
 	vsOutput.mPosition.w = 1.0f;
 
 	vsOutput.mColor *= vsOutput.mOneOverW;
+	vsOutput.mNormal *= vsOutput.mOneOverW;
 	vsOutput.mUV *= vsOutput.mOneOverW;
 
 	trim(vsOutput);
@@ -400,6 +401,7 @@ void Render::perspectiveDivision(VsOutput& vsOutput) {
 
 void Render::perspectiveRecover(VsOutput& vsOutput) {
 	vsOutput.mColor /= vsOutput.mOneOverW;
+	vsOutput.mNormal /= vsOutput.mOneOverW;
 	vsOutput.mUV /= vsOutput.mOneOverW;
 }
 

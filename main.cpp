@@ -7,6 +7,7 @@
 #include "math/math.h"
 #include "opengl/shader/defaultShader.h"
 #include "opengl/shader/textureShader.h"
+#include "opengl/shader/lightShader.h"
 
 #pragma comment(linker, "/subsystem:console /entry:wWinMainCRTStartup" )
 
@@ -16,11 +17,7 @@ uint32_t HEIGHT = 600;
 Camera* camera = nullptr;
 
 //两个三角形，三个属性对应vbo
-uint32_t positionVbo = 0;
-
-uint32_t colorVbo = 0;
-
-uint32_t uvVbo = 0;
+uint32_t interleavedVbo = 0;
 
 //三角形的indices
 uint32_t ebo = 0;
@@ -29,7 +26,9 @@ uint32_t ebo = 0;
 uint32_t vao = 0;
 
 //使用的Shader
-TextureShader* shader = nullptr;
+LightShader* shader = nullptr;
+DirectionalLight directionalLight;
+math::vec3f envLight;
 
 //使用的texture
 uint32_t texture = 0;
@@ -37,12 +36,19 @@ Image* image = nullptr;
 
 //mvp变换矩阵
 math::mat4f modelMatrix;
+void transform() {
+	modelMatrix = math::translate(math::mat4f(), 0.0f, 0.0f, -4.0f);
+}
 
 void prepare() {
-	camera = new Camera(60.0f, (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f, {0.0f, 1.0f, 0.0f});
+	camera = new Camera(60.0f, (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f, { 0.0f, 1.0f, 0.0f });
 	app->setCamera(camera);
+	camera->setSpeed(0.02f);
 
-	shader = new TextureShader();
+	shader = new LightShader();
+	directionalLight.color = {1.0f, 1.0f, 1.0f};
+	directionalLight.direction = {-1.0f, -0.3f, -0.7f};
+	envLight = {0.1f, 0.1f, 0.1f};
 
 	//制造纹理
 	image = Image::createImage("assets/textures/goku.jpg");
@@ -54,74 +60,106 @@ void prepare() {
 	glTexParameter(TEXTURE_WRAP_V, TEXTURE_WRAP_REPEAT);
 	glBindTexture(0);
 
-	glEnable(CULL_FACE);
-	glFrontFace(FRONT_FACE_CCW);
-	glCullFace(BACK_FACE);
+	float vertices[] = {
+		// positions          // normals           // texture coords
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 
-	float positions[] = {
-		-0.5f, 0.0f, -1.0f,
-		0.5f, 0.0f, -1.0f,
-		0.0f, 0.5f, -1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+
+		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
 	};
 
-	float colors[] = {
-		1.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
+	uint32_t indices[] = {
+		0, 1, 2, 3, 4, 5,
+		6, 7, 8, 9, 10, 11,
+		12,13,14,15,16,17,
+		18,19,20,21,22,23,
+		24,25,26,27,28,29,
+		30,31,32,33,34,35
 	};
-
-	float uvs[] = {
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		0.5f, 1.0f,
-	};
-
-	uint32_t indices[] = { 0, 1, 2 };
 
 	//生成indices对应ebo
 	ebo = glGenBuffer();
 	glBindBuffer(ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * 3, indices);
+	glBufferData(ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * 36, indices);
 	glBindBuffer(ELEMENT_ARRAY_BUFFER, 0);
+
+	//总的交叉式vbo
+	interleavedVbo = glGenBuffer();
+	glBindBuffer(ARRAY_BUFFER, interleavedVbo);
+	glBufferData(ARRAY_BUFFER, sizeof(float) * 288, vertices);
 
 	//生成vao并且绑定
 	vao = glGenVertexArray();
 	glBindVertexArray(vao);
+	glBindBuffer(ARRAY_BUFFER, interleavedVbo);
 
 	//position
-	positionVbo = glGenBuffer();
-	glBindBuffer(ARRAY_BUFFER, positionVbo);
-	glBufferData(ARRAY_BUFFER, sizeof(float) * 9, positions);
-	glVertexAttributePointer(0, 3, 3 * sizeof(float), 0);
+	glVertexAttributePointer(0, 3, 8 * sizeof(float), 0);
 
-	//color
-	colorVbo = glGenBuffer();
-	glBindBuffer(ARRAY_BUFFER, colorVbo);
-	glBufferData(ARRAY_BUFFER, sizeof(float) * 12, colors);
-	glVertexAttributePointer(1, 4, 4 * sizeof(float), 0);
+	//normal
+	glVertexAttributePointer(1, 3, 8 * sizeof(float), 3 * sizeof(float));
 
 	//uv
-	uvVbo = glGenBuffer();
-	glBindBuffer(ARRAY_BUFFER, uvVbo);
-	glBufferData(ARRAY_BUFFER, sizeof(float) * 6, uvs);
-	glVertexAttributePointer(2, 2, 2 * sizeof(float), 0);
+	glVertexAttributePointer(2, 2, 8 * sizeof(float), 6 * sizeof(float));
 
 	glBindBuffer(ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 }
 
 void render() {
+	transform();
+
 	shader->mModelMatrix = modelMatrix;
 	shader->mViewMatrix = camera->getViewMatrix();
 	shader->mProjectionMatrix = camera->getProjectionMatrix();
 	shader->mDiffuseTexture = texture;
+
+	shader->mDirectionalLight = directionalLight;
+	shader->mEnvLight = envLight;
 
 	glClear();
 	glUseProgram(shader);
 
 	glBindVertexArray(vao);
 	glBindBuffer(ELEMENT_ARRAY_BUFFER, ebo);
-	glDrawElement(DRAW_TRIANGLES, 0, 3);
+	glDrawElement(DRAW_TRIANGLES, 0, 36);
 }
 
 /*

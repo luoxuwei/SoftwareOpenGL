@@ -36,6 +36,8 @@ public:
 
     math::mat4f getProjectionMatrix()const { return mProjectionMatrix; }
 
+    void setSpeed(const float& s) { mSpeed = s; }
+
 private:
     void pitch(int yoffset);
 

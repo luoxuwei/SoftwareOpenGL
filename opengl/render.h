@@ -91,7 +91,7 @@ private:
 	static Render* mInstance;
 	FrameBuffer* mFrameBuffer{ nullptr };
 
-	//VBO/EBO
+	//VBO相关/EBO也存在内部
 	uint32_t mCurrentVBO{ 0 };
 	uint32_t mCurrentEBO{ 0 };
 	uint32_t mBufferCounter{ 0 };
@@ -106,7 +106,7 @@ private:
 	math::mat4f mScreenMatrix;
 
 	//cull face
-	bool mEnableCullFace{ true };
+	bool mEnableCullFace{ false };
 	uint32_t mFrontFace{ FRONT_FACE_CCW };
 	uint32_t mCullFace{ BACK_FACE };
 
