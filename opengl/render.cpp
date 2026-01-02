@@ -29,6 +29,11 @@ Render::~Render() {
 		delete iter.second;
 	}
 	mVaoMap.clear();
+
+	for (auto iter : mTextureMap) {
+		delete iter.second;
+	}
+	mTextureMap.clear();
 }
 
 void Render::initSurface(const uint32_t& width, const uint32_t& height, void* buffer) {
@@ -186,6 +191,54 @@ void Render::depthFunc(const uint32_t& depthFunc) {
 	mDepthFunc = depthFunc;
 }
 
+uint32_t Render::genTexture() {
+	mTextureCounter++;
+	mTextureMap.insert(std::make_pair(mTextureCounter, new Texture()));
+
+	return mTextureCounter;
+}
+
+void Render::deleteTexture(const uint32_t& texID) {
+	auto iter = mTextureMap.find(texID);
+	if (iter != mTextureMap.end()) {
+		delete iter->second;
+	}
+	else {
+		return;
+	}
+
+	mTextureMap.erase(iter);
+}
+
+void Render::bindTexture(const uint32_t& texID) {
+	mCurrentTexture = texID;
+}
+
+void Render::texImage2D(const uint32_t& width, const uint32_t& height, void* data) {
+	if (!mCurrentTexture) {
+		return;
+	}
+
+	auto iter = mTextureMap.find(mCurrentTexture);
+	if (iter == mTextureMap.end()) {
+		return;
+	}
+	auto texture = iter->second;
+	texture->setBufferData(width, height, data);
+}
+
+void Render::texParameter(const uint32_t& param, const uint32_t& value) {
+	if (!mCurrentTexture) {
+		return;
+	}
+
+	auto iter = mTextureMap.find(mCurrentTexture);
+	if (iter == mTextureMap.end()) {
+		return;
+	}
+	auto texture = iter->second;
+	texture->setParameter(param, value);
+}
 
 void Render::drawElement(const uint32_t& drawMode, const uint32_t& first, const uint32_t& count) {
 	if (mCurrentVAO == 0 || mShader == nullptr || count == 0) {
@@ -296,7 +349,7 @@ void Render::drawElement(const uint32_t& drawMode, const uint32_t& first, const 
 	FsOutput fsOutput;
 	uint32_t pixelPos = 0;
 	for (uint32_t i = 0; i < rasterOutputs.size(); ++i) {
-		mShader->fragmentShader(rasterOutputs[i], fsOutput);
+		mShader->fragmentShader(rasterOutputs[i], fsOutput, mTextureMap);
 		pixelPos = fsOutput.mPixelPos.y * mFrameBuffer->mWidth + fsOutput.mPixelPos.x;
 
 		//深度测试

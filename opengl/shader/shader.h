@@ -3,11 +3,12 @@
 #include "../../common/base.h"
 #include "../data.h"
 #include "../vbo.h"
+#include "../texture.h"
 
 class Shader {
 public:
-    Shader();
-    ~Shader();
+    Shader() {}
+    ~Shader() {}
     virtual VsOutput vertexShader(
         //VAO当中的bindingMap
         const std::map<uint32_t, BindingDescription>& bindingMap,
@@ -19,7 +20,7 @@ public:
         const uint32_t& index
     ) = 0;
 
-    virtual void fragmentShader(const VsOutput& input, FsOutput& output) = 0;
+    virtual void fragmentShader(const VsOutput& input, FsOutput& output, const std::map<uint32_t, Texture*>& textures) = 0;
 
     //tool functions
 public:

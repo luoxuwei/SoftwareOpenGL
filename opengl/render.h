@@ -9,6 +9,7 @@
 #include "vao.h"
 #include "vbo.h"
 #include "shader/shader.h"
+#include "texture.h"
 
 #define gl Render::getInstance()
 
@@ -49,18 +50,22 @@ public:
 	void useProgram(Shader* shader);
 
 	void enable(const uint32_t& value);
-
 	void disable(const uint32_t& value);
 
 	//cull face
 	void frontFace(const uint32_t& value);
-
 	void cullFace(const uint32_t& value);
 
 	//depth test
 	void depthFunc(const uint32_t& depthFunc);
-
 	void depthWrite(bool value);
+
+	//textures
+	uint32_t genTexture();
+	void deleteTexture(const uint32_t& texID);
+	void bindTexture(const uint32_t& texID);
+	void texImage2D(const uint32_t& width, const uint32_t& height, void* data);
+	void texParameter(const uint32_t& param, const uint32_t& value);
 
 	void drawElement(const uint32_t& drawMode, const uint32_t& first, const uint32_t& count);
 
@@ -112,4 +117,9 @@ private:
 
 	//blending
 	bool mEnableBlending{ false };
+
+	//texture
+	uint32_t mCurrentTexture{ 0 };
+	uint32_t mTextureCounter{ 0 };
+	std::map<uint32_t, Texture*> mTextureMap;
 };

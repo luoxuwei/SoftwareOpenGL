@@ -71,6 +71,26 @@ inline void glCullFace(const uint32_t& value) {
 	gl->cullFace(value);
 }
 
+inline uint32_t glGenTexture() {
+	return gl->genTexture();
+}
+
+inline void glBindTexture(const uint32_t& texID) {
+	gl->bindTexture(texID);
+}
+
+inline void glTexImage2D(const uint32_t& width, const uint32_t& height, void* data) {
+	gl->texImage2D(width, height, data);
+}
+
+inline void glTexParameter(const uint32_t& param, const uint32_t& value) {
+	gl->texParameter(param, value);
+}
+
+inline void glDeleteTexture(const uint32_t& texID) {
+	gl->deleteTexture(texID);
+}
+
 inline void printVAO(const uint32_t& vaoID) {
 	gl->printVAO(vaoID);
 }

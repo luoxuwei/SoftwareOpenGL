@@ -1,10 +1,6 @@
 ﻿//Copyright luoxuwei All Rights Reserved.
 #include "shader.h"
 
-Shader::Shader() {}
-
-Shader::~Shader() {}
-
 math::vec4f Shader::getVector(
     const std::map<uint32_t, BindingDescription>& bindingMap,
     const std::map<uint32_t, BufferObject*>& bufferMap,
