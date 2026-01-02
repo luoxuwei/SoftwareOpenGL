@@ -139,6 +139,36 @@ void Render::useProgram(Shader* shader) {
 	mShader = shader;
 }
 
+void Render::enable(const uint32_t& value) {
+	switch (value)
+	{
+		case CULL_FACE:
+			mEnableCullFace = true;
+			break;
+		default:
+			break;
+	}
+}
+
+void Render::disable(const uint32_t& value) {
+	switch (value)
+	{
+		case CULL_FACE:
+			mEnableCullFace = false;
+			break;
+		default:
+			break;
+	}
+}
+
+void Render::frontFace(const uint32_t& value) {
+	mFrontFace = value;
+}
+
+void Render::cullFace(const uint32_t& value) {
+	mCullFace = value;
+}
+
 void Render::drawElement(const uint32_t& drawMode, const uint32_t& first, const uint32_t& count) {
 	if (mCurrentVAO == 0 || mShader == nullptr || count == 0) {
 		return;
@@ -195,11 +225,28 @@ void Render::drawElement(const uint32_t& drawMode, const uint32_t& first, const 
 	}
 
 	/*
+	* 背面剔除阶段
+	* 作用：
+	*	背向我们的三角形需要剔除
+	*/
+	std::vector<VsOutput> cullOutputs = clipOutputs;
+	if (drawMode == DRAW_TRIANGLES && mEnableCullFace) {
+		cullOutputs.clear();
+		for (uint32_t i = 0; i < clipOutputs.size() - 2; i += 3) {
+			if (Clipper::cullFace(mFrontFace, mCullFace, clipOutputs[i], clipOutputs[i + 1], clipOutputs[i + 2])) {
+				auto start = clipOutputs.begin() + i;
+				auto end = clipOutputs.begin() + i + 3;
+				cullOutputs.insert(cullOutputs.end(), start, end);
+			}
+		}
+	}
+
+	/*
 	* 屏幕映射处理阶段
 	* 作用：
 	*	将NDC下的点，通过screenMatrix，转化到屏幕空间
 	*/
-	for (auto& output : clipOutputs) {
+	for (auto& output : cullOutputs) {
 		screenMapping(output);
 	}
 
@@ -209,7 +256,7 @@ void Render::drawElement(const uint32_t& drawMode, const uint32_t& first, const 
 	*	离散出所有需要的Fragment
 	*/
 	std::vector<VsOutput> rasterOutputs;
-	rasterize(rasterOutputs, drawMode, clipOutputs);
+	rasterize(rasterOutputs, drawMode, cullOutputs);
 
 
 	if (rasterOutputs.empty()) return;

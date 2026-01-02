@@ -143,3 +143,38 @@ VsOutput Clipper::intersect(const VsOutput& last, const VsOutput& current, const
 	return output;
 }
 
+bool Clipper::cullFace(
+	const uint32_t& frontFace,
+	const uint32_t& cullFace,
+	const VsOutput& v0,
+	const VsOutput& v1,
+	const VsOutput& v2) {
+
+	math::vec3f edge1 = v1.mPosition - v0.mPosition;
+	math::vec3f edge2 = v2.mPosition - v0.mPosition;
+
+	math::vec3f normal = math::cross(edge1, edge2);
+
+	//注意，此时NDC坐标已经位于了左手坐标系下，叉乘需要用左手来比划
+	if (cullFace == BACK_FACE) {
+
+		//在逆时针情况下,使用左手示意，z>0为front，保留
+		if (frontFace == FRONT_FACE_CCW) {
+			return normal.z > 0;
+		}
+		else {
+		//在顺时针情况下,使用左手示意，z<0为front，保留
+			return normal.z < 0;
+		}
+	}
+	else {
+		//在逆时针情况下,使用左手示意，z<0为back，保留
+		if (frontFace == FRONT_FACE_CCW) {
+			return normal.z < 0;
+		}
+		else {
+		//在顺时针情况下,使用左手示意，z>0为back，保留
+			return normal.z > 0;
+		}
+	}
+}

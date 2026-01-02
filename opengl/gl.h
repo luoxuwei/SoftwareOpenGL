@@ -56,6 +56,21 @@ inline void glDrawElement(const uint32_t& drawMode, const uint32_t& first, const
 	gl->drawElement(drawMode, first, count);
 }
 
+inline void glEnable(const uint32_t& value) {
+	gl->enable(value);;
+}
+
+inline void glDisable(const uint32_t& value) {
+	gl->disable(value);;
+}
+
+inline void glFrontFace(const uint32_t& value) {
+	gl->frontFace(value);
+}
+inline void glCullFace(const uint32_t& value) {
+	gl->cullFace(value);
+}
+
 inline void printVAO(const uint32_t& vaoID) {
 	gl->printVAO(vaoID);
 }

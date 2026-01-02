@@ -34,7 +34,7 @@ math::mat4f perspectiveMatrix;
 float angle = 0.0f;
 float cameraZ = 2.0f;
 void transform() {
-	angle += 0.003f;
+	angle += 0.01f;
 	//cameraZ -= 0.01f;
 
 	//模型变换
@@ -53,10 +53,14 @@ void prepare() {
 	auto cameraModelMatrix = math::translate(math::mat4f(1.0f), math::vec3f{ 0.0f, 0.0f, cameraZ });
 	viewMatrix = math::inverse(cameraModelMatrix);
 
+	glEnable(CULL_FACE);
+	glFrontFace(FRONT_FACE_CCW);
+	glCullFace(BACK_FACE);
+
 	float positions[] = {
-		-0.5f, -0.5f, 0.0f,
-		-0.5f, 0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
+		-0.5f, 0.0f, 0.0f,
+		0.5f, 0.0f, 0.0f,
+		0.25f, 0.5f, 0.0f,
 	};
 
 	float colors[] = {
