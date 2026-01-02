@@ -1,7 +1,8 @@
 //Copyright luoxuwei All Rights Reserved.
 #pragma once
 #include "../common/base.h"
-#include <Windows.h>
+#include<Windows.h>
+#include "camera.h"
 
 #define app App::getInstance()
 
@@ -26,12 +27,16 @@ public:
 	uint32_t getHeight() const { return mHeight; }
 	void* getCanvas() const { return mCanvasBuffer; }
 
+	void setCamera(Camera* camera);
+
 private:
-	bool createWindow(HINSTANCE hInstance);
+	BOOL createWindow(HINSTANCE hInstance);
 	ATOM registerWindowClass(HINSTANCE hInstance);
 
 private:
 	static App* mInstance;
+
+	Camera* mCamera{ nullptr };
 
 	//为true表示当前窗体仍然在继续显示，程序一直在跑
 	//为false表示窗体已经被命令关闭，程序需要退出
@@ -47,5 +52,5 @@ private:
 	HDC			mhDC;//当前窗口主dc
 	HDC			mCanvasDC;//创建的于mhDC相兼容的绘图用的dc
 	HBITMAP		mhBmp;//mCanvasDC内部生成的bitmap
-	void* mCanvasBuffer{ nullptr };//mhBmp对应的内存起始位置指针
+	void*		mCanvasBuffer{ nullptr };//mhBmp对应的内存起始位置指针
 };

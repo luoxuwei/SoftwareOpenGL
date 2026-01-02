@@ -1,5 +1,6 @@
 //Copyright luoxuwei All Rights Reserved.
 #include"app.h"
+#include<windowsx.h>
 
 App* App::mInstance = nullptr;
 App* App::getInstance() {
@@ -48,7 +49,7 @@ bool App::init(HINSTANCE hInstance, const uint32_t& width, const uint32_t& heigh
 	bmpInfo.bmiHeader.biBitCount = 32;
 	bmpInfo.bmiHeader.biCompression = BI_RGB; //实际上存储方式为bgra
 
-	//创建与mhMem兼容的位图,其实是在mhMem指代的设备上划拨了一块内存，让mCanvasBuffer指向它
+	//创建与mhMem兼容的位图,其实实在mhMem指代的设备上划拨了一块内存，让mCanvasBuffer指向它
 	mhBmp = CreateDIBSection(mCanvasDC, &bmpInfo, DIB_RGB_COLORS, (void**)&mCanvasBuffer, 0, 0);//在这里创建buffer的内存
 
 	//一个设备可以创建多个位图，本设备使用mhBmp作为激活位图，对mCanvasDC的内存拷出，其实就是拷出了mhBmp的数据
@@ -79,7 +80,7 @@ ATOM App::registerWindowClass(HINSTANCE hInstance)
 	return RegisterClassExW(&wndClass);
 }
 
-bool App::createWindow(HINSTANCE hInstance)
+BOOL App::createWindow(HINSTANCE hInstance)
 {
 	mWindowInst = hInstance;
 
@@ -141,6 +142,37 @@ bool App::peekMessage() {
 void App::handleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message)
 	{
+	case WM_KEYDOWN: {
+		if (mCamera) {
+			mCamera->onKeyDown(wParam);
+		}
+		break;
+	}
+	case WM_KEYUP: {
+		if (mCamera) {
+			mCamera->onKeyUp(wParam);
+		}
+		break;
+	}
+	case WM_RBUTTONDOWN: {
+		if (mCamera) {
+			mCamera->onRMouseDown(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		}
+		break;
+	}
+	case WM_RBUTTONUP: {
+		if (mCamera) {
+			mCamera->onRMouseUp(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		}
+		break;
+	}
+
+	case WM_MOUSEMOVE: {
+		if (mCamera) {
+			mCamera->onMouseMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		}
+		break;
+	}
 	case WM_CLOSE: {
 		DestroyWindow(hWnd);//此处销毁窗体,会自动发出WM_DESTROY
 		break;
@@ -162,4 +194,8 @@ void App::handleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
 void App::show() {
 	BitBlt(mhDC, 0, 0, mWidth, mHeight, mCanvasDC, 0, 0, SRCCOPY);
+}
+
+void App::setCamera(Camera* camera) {
+	mCamera = camera;
 }

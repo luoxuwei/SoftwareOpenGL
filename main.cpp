@@ -13,6 +13,8 @@
 uint32_t WIDTH = 800;
 uint32_t HEIGHT = 600;
 
+Camera* camera = nullptr;
+
 //两个三角形，三个属性对应vbo
 uint32_t positionVbo = 0;
 
@@ -35,25 +37,11 @@ Image* image = nullptr;
 
 //mvp变换矩阵
 math::mat4f modelMatrix;
-math::mat4f viewMatrix;
-math::mat4f perspectiveMatrix;
-
-
-float angle = 0.0f;
-float cameraZ = 1.0f;
-void transform() {
-	angle += 0.002f;
-	//cameraZ -= 0.01f;
-
-	//模型变换
-	modelMatrix = math::rotate(math::mat4f(1.0f), angle, math::vec3f{ 0.0f, 1.0f, 0.0f });
-
-	//视图变换
-	auto cameraModelMatrix = math::translate(math::mat4f(1.0f), math::vec3f{ 0.0f, 0.0f, cameraZ });
-	viewMatrix = math::inverse(cameraModelMatrix);
-}
 
 void prepare() {
+	camera = new Camera(60.0f, (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f, {0.0f, 1.0f, 0.0f});
+	app->setCamera(camera);
+
 	shader = new TextureShader();
 
 	//制造纹理
@@ -66,19 +54,14 @@ void prepare() {
 	glTexParameter(TEXTURE_WRAP_V, TEXTURE_WRAP_REPEAT);
 	glBindTexture(0);
 
-	perspectiveMatrix = math::perspective(60.0f, (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
-
-	auto cameraModelMatrix = math::translate(math::mat4f(1.0f), math::vec3f{ 0.0f, 0.0f, cameraZ });
-	viewMatrix = math::inverse(cameraModelMatrix);
-
 	glEnable(CULL_FACE);
 	glFrontFace(FRONT_FACE_CCW);
 	glCullFace(BACK_FACE);
 
 	float positions[] = {
-		-0.5f, 0.0f, 0.0f,
-		0.5f, 0.0f, 0.0f,
-		0.0f, 0.5f, 0.0f,
+		-0.5f, 0.0f, -1.0f,
+		0.5f, 0.0f, -1.0f,
+		0.0f, 0.5f, -1.0f,
 	};
 
 	float colors[] = {
@@ -128,10 +111,9 @@ void prepare() {
 }
 
 void render() {
-	transform();
 	shader->mModelMatrix = modelMatrix;
-	shader->mViewMatrix = viewMatrix;
-	shader->mProjectionMatrix = perspectiveMatrix;
+	shader->mViewMatrix = camera->getViewMatrix();
+	shader->mProjectionMatrix = camera->getProjectionMatrix();
 	shader->mDiffuseTexture = texture;
 
 	glClear();
@@ -163,6 +145,8 @@ int APIENTRY wWinMain(
 	bool alive = true;
 	while (alive) {
 		alive = app->peekMessage();
+		camera->update();
+
 		render();
 		app->show();
 	}
