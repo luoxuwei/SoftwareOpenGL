@@ -40,6 +40,7 @@ struct RGBA {
 
 #define CULL_FACE 1
 #define DEPTH_TEST 2
+#define BLENDING 3
 
 #define FRONT_FACE 0
 #define BACK_FACE 1

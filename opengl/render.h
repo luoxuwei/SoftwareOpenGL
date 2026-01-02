@@ -60,6 +60,8 @@ public:
 	//depth test
 	void depthFunc(const uint32_t& depthFunc);
 
+	void depthWrite(bool value);
+
 	void drawElement(const uint32_t& drawMode, const uint32_t& first, const uint32_t& count);
 
 private:
@@ -77,6 +79,8 @@ private:
 	void trim(VsOutput& vsOutput);
 
 	bool depthTest(const FsOutput& output);
+
+	RGBA blend(const FsOutput& output);
 
 private:
 	static Render* mInstance;
@@ -103,5 +107,9 @@ private:
 
 	//depth
 	bool mEnableDepthTest{ true };
+	bool mEnableDepthWrite{ true };
 	uint32_t mDepthFunc{ DEPTH_LESS };
+
+	//blending
+	bool mEnableBlending{ false };
 };

@@ -15,8 +15,11 @@ uint32_t HEIGHT = 600;
 //两个三角形，三个属性对应vbo
 uint32_t positionVbo0 = 0;
 uint32_t positionVbo1 = 0;
+uint32_t positionVbo2 = 0;
+
 uint32_t colorVbo0 = 0;
 uint32_t colorVbo1 = 0;
+uint32_t colorVbo2 = 0;
 
 uint32_t uvVbo = 0;
 
@@ -26,6 +29,7 @@ uint32_t ebo = 0;
 //两个三角形专属vao
 uint32_t vao0 = 0;
 uint32_t vao1 = 0;
+uint32_t vao2 = 0;
 
 //使用的Shader
 DefaultShader* shader = nullptr;
@@ -62,7 +66,7 @@ void prepare() {
 	glFrontFace(FRONT_FACE_CCW);
 	glCullFace(BACK_FACE);
 
-	//glDisable(DEPTH_TEST);
+	glEnable(BLENDING);
 
 	//第一个三角形
 	float positions0[] = {
@@ -72,22 +76,35 @@ void prepare() {
 	};
 
 	float colors0[] = {
-		1.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
+		1.0f, 0.0f, 0.0f, 0.3f,
+		0.0f, 1.0f, 0.0f, 0.3f,
+		0.0f, 0.0f, 1.0f, 0.3f,
 	};
 
 	//第二个三角形
 	float positions1[] = {
-		0.3f, 0.0f, -0.3f,
-		0.8f, 0.0f, -0.3f,
-		0.45f, 0.5f, -0.3f,
+		0.3f, 0.0f, -0.8f,
+		0.8f, 0.0f, -0.8f,
+		0.45f, 0.5f, -0.8f,
 	};
 
 	float colors1[] = {
 		1.0f, 1.0f, 0.0f, 1.0f,
 		1.0f, 1.0f, 0.0f, 1.0f,
 		1.0f, 1.0f, 0.0f, 1.0f,
+	};
+
+	//第三个三角形
+	float positions2[] = {
+		0.5f, 0.0f, -0.5f,
+		1.0f, 0.0f, -0.5f,
+		0.75f, 0.5f, -0.5f,
+	};
+
+	float colors2[] = {
+		0.0f, 0.0f, 1.0f, 0.5f,
+		0.0f, 0.0f, 1.0f, 0.5f,
+		0.0f, 0.0f, 1.0f, 0.5f,
 	};
 
 	float uvs[] = {
@@ -155,6 +172,31 @@ void prepare() {
 
 	glBindBuffer(ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+
+	//生成vao并且绑定
+	vao2 = glGenVertexArray();
+	glBindVertexArray(vao2);
+
+	//position2
+	positionVbo2 = glGenBuffer();
+	glBindBuffer(ARRAY_BUFFER, positionVbo2);
+	glBufferData(ARRAY_BUFFER, sizeof(float) * 9, positions2);
+	glVertexAttributePointer(0, 3, 3 * sizeof(float), 0);
+
+	//color2
+	colorVbo2 = glGenBuffer();
+	glBindBuffer(ARRAY_BUFFER, colorVbo2);
+	glBufferData(ARRAY_BUFFER, sizeof(float) * 12, colors2);
+	glVertexAttributePointer(1, 4, 4 * sizeof(float), 0);
+
+	//uv
+	glBindBuffer(ARRAY_BUFFER, uvVbo);
+	glVertexAttributePointer(2, 2, 2 * sizeof(float), 0);
+
+	glBindBuffer(ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+
 }
 
 void render() {
@@ -165,11 +207,16 @@ void render() {
 
 	glClear();
 	glUseProgram(shader);
-	glBindVertexArray(vao0);
+
+	glBindVertexArray(vao1);
 	glBindBuffer(ELEMENT_ARRAY_BUFFER, ebo);
 	glDrawElement(DRAW_TRIANGLES, 0, 3);
 
-	glBindVertexArray(vao1);
+	glBindVertexArray(vao2);
+	glBindBuffer(ELEMENT_ARRAY_BUFFER, ebo);
+	glDrawElement(DRAW_TRIANGLES, 0, 3);
+
+	glBindVertexArray(vao0);
 	glBindBuffer(ELEMENT_ARRAY_BUFFER, ebo);
 	glDrawElement(DRAW_TRIANGLES, 0, 3);
 }

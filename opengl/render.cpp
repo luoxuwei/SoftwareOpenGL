@@ -149,6 +149,9 @@ void Render::enable(const uint32_t& value) {
 		case DEPTH_TEST:
 			mEnableDepthTest = true;
 			break;
+		case BLENDING:
+			mEnableBlending = true;
+			break;
 		default:
 			break;
 	}
@@ -163,6 +166,9 @@ void Render::disable(const uint32_t& value) {
 		case DEPTH_TEST:
 			mEnableDepthTest = false;
 			break;
+		case BLENDING:
+			mEnableBlending = false;
+			break;
 		default:
 			break;
 	}
@@ -175,6 +181,11 @@ void Render::frontFace(const uint32_t& value) {
 void Render::cullFace(const uint32_t& value) {
 	mCullFace = value;
 }
+
+void Render::depthFunc(const uint32_t& depthFunc) {
+	mDepthFunc = depthFunc;
+}
+
 
 void Render::drawElement(const uint32_t& drawMode, const uint32_t& first, const uint32_t& count) {
 	if (mCurrentVAO == 0 || mShader == nullptr || count == 0) {
@@ -293,7 +304,12 @@ void Render::drawElement(const uint32_t& drawMode, const uint32_t& first, const 
 			continue;
 		}
 
-		mFrameBuffer->mColorBuffer[pixelPos] = fsOutput.mColor;
+		RGBA color = fsOutput.mColor;
+		if (mEnableBlending) {
+			color = blend(fsOutput);
+		}
+
+		mFrameBuffer->mColorBuffer[pixelPos] = color;
 	}
 }
 
@@ -372,7 +388,9 @@ bool Render::depthTest(const FsOutput& output) {
 	{
 		case DEPTH_LESS:
 			if (output.mDepth < oldDepth) {
-				mFrameBuffer->mDepthBuffer[pixelPos] = output.mDepth;
+				if (mEnableDepthWrite) {
+					mFrameBuffer->mDepthBuffer[pixelPos] = output.mDepth;
+				}
 				return true;
 			}
 			else {
@@ -381,7 +399,10 @@ bool Render::depthTest(const FsOutput& output) {
 			break;
 		case DEPTH_GREATER:
 			if (output.mDepth > oldDepth) {
-				mFrameBuffer->mDepthBuffer[pixelPos] = output.mDepth;
+				if (mEnableDepthWrite) {
+					mFrameBuffer->mDepthBuffer[pixelPos] = output.mDepth;
+				}
+
 				return true;
 			}
 			else {
@@ -392,5 +413,25 @@ bool Render::depthTest(const FsOutput& output) {
 			return false;
 			break;
 	}
+}
 
+void Render::depthWrite(bool value) {
+	mEnableDepthWrite = value;
+}
+
+RGBA Render::blend(const FsOutput& output) {
+	RGBA result;
+
+	uint32_t pixelPos = output.mPixelPos.y * mFrameBuffer->mWidth + output.mPixelPos.x;
+	RGBA dst = mFrameBuffer->mColorBuffer[pixelPos];
+	RGBA src = output.mColor;
+
+	float weight = static_cast<float>(src.mA) / 255.0f;
+
+	result.mR = static_cast<float>(src.mR) * weight + static_cast<float>(dst.mR) * (1.0f - weight);
+	result.mG = static_cast<float>(src.mG) * weight + static_cast<float>(dst.mG) * (1.0f - weight);
+	result.mB = static_cast<float>(src.mB) * weight + static_cast<float>(dst.mB) * (1.0f - weight);
+	result.mA = static_cast<float>(src.mA) * weight + static_cast<float>(dst.mA) * (1.0f - weight);
+
+	return result;
 }
