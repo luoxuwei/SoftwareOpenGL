@@ -7,8 +7,16 @@ project(SoftwareOpenGL)
 #本工程支持的C++版本
 set(CMAKE_CXX_STANDARD 17)
 
-file(GLOB copyResources "./assets")
+file(GLOB copyResources "./assets" "./thirdParty/bin/assimp/assimp-vc143-mtd.dll")
 file(COPY ${copyResources} DESTINATION ${CMAKE_BINARY_DIR})
+
+include_directories(
+        SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/thirdParty/include
+)
+
+link_directories(
+        SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/thirdParty/lib/assimp
+)
 
 add_subdirectory(app)
 add_subdirectory(opengl)
@@ -18,4 +26,4 @@ add_executable(SoftwareOpenGL "main.cpp")
 add_executable(testMath "testMath.cpp")
 add_executable(testMatrix "testMatrix.cpp")
 
-target_link_libraries(SoftwareOpenGL appLib openglLib)
+target_link_libraries(SoftwareOpenGL appLib openglLib assimp-vc143-mtd.lib)

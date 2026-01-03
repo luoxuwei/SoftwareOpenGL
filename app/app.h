@@ -4,7 +4,7 @@
 #include<Windows.h>
 #include "camera.h"
 
-#define app App::getInstance()
+#define APP App::getInstance()
 
 class App {
 public:
