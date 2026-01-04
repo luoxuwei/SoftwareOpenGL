@@ -10,6 +10,9 @@ int main() {
 	auto s = m * n;
 
 	s.printMatrix();
+    math::vec3f v;
+	math::vec3f r = s*v;
+	r.print();
 
 	//math::Mat4f m41;
 	//math::Mat4f m42;
